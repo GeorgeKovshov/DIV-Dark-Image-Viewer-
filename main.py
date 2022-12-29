@@ -40,6 +40,7 @@ def max_size_reshape(height, width):
 def lock_on_size_reshape(height, width, canv_height, canv_width):
     """function to fit image inside of window and canvas,
      returns new height and width"""
+
     if height <= canv_height and width <= canv_width:
         return height, width
     else:
@@ -47,6 +48,33 @@ def lock_on_size_reshape(height, width, canv_height, canv_width):
             return canv_height, round(width * (canv_height / height))
         else:
             return round(height * (canv_width / width)), canv_width
+    
+
+
+
+    """if height <= canv_height and width <= canv_width:
+        return height, width
+    elif height > canv_height and width <= canv_width:
+        return canv_height, round(width * (canv_height / height))
+    elif height <= canv_height and width > canv_width:
+        return round(height * (canv_width / width)), canv_width
+    else:
+        return canv_height, canv_width
+    """
+
+
+def canvas_reshape(height, width, canv_height, canv_width):
+    if height <= canv_height and width <= canv_width:
+        return height, width
+    else:
+        if height/width < 1:  # determening which dimension is the biggest one
+            print(1)
+            return min(height, canv_height), min(round(width * (canv_height / height)), canv_width)
+
+        else:
+            print(2)
+            return min(round(height * (canv_width / width)), canv_height), min(width, canv_width)
+
 
 
 
@@ -70,6 +98,7 @@ def show_image(img_number):
     actual_image = image1_new
     canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, anchor=CENTER, image=image1_new)
     canvas.grid(row=0, column=0, columnspan=3)
+    print(actual_image.width() / actual_image.height())
 
 
 
@@ -203,11 +232,13 @@ def zoom(var):
     if not lock_on.get():
         # if zoomed-in image gets bigger than monitor, function stops expanding window; the image within canvas always expands
         if size_of_canvas_new[0] > monitor_height - 100 or size_of_canvas_new[1] > monitor_width - 100:
-            size_of_canvas_new = lock_on_size_reshape(size_of_canvas_new[0], size_of_canvas_new[1],
-                                                     monitor_height - 250, monitor_width - 250)
+            print("image: ", size_of_image_new, " canvas old: ", size_of_canvas_new)
+            size_of_canvas_new = canvas_reshape(size_of_canvas_new[0], size_of_canvas_new[1],
+                                                     monitor_height - 350, monitor_width - 350)
             #checkbox_Lock.select()
-
+            print("image: ", size_of_image_new, " canvas new: ", size_of_canvas_new)
         canvas.config(height=size_of_canvas_new[0], width=size_of_canvas_new[1])
+
     image1_new = ImageTk.PhotoImage(image_for_canvas_new.resize((size_of_image_new[1], size_of_image_new[0])))
     actual_image = image1_new
     canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, anchor=CENTER, image=image1_new)
@@ -258,6 +289,8 @@ button_zoom.grid(row=3, column=2)
 checkbox_Lock = Checkbutton(root, text="Lock window size", variable=lock_on, onvalue=True, offvalue=False)
 checkbox_Lock.deselect()
 checkbox_Lock.grid(row=3, column=1)
+
+print(monitor_height, monitor_width)
 
 
 root.mainloop()
