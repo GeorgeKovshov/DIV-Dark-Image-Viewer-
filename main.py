@@ -1,3 +1,4 @@
+import sys
 import tkinter
 from tkinter import *
 from PIL import ImageTk, Image
@@ -17,8 +18,11 @@ for f in os.listdir('.'):
 #global current_image - use 'global' only in functions, not here
 current_image = 0
 
-#by default window is unlocked
+#variable for window size lock
 lock_on = BooleanVar()
+
+#variable for rotation
+rotation = 0
 
 # Getting the monitor screen height and width
 monitor_height = root.winfo_screenheight()
@@ -48,19 +52,7 @@ def lock_on_size_reshape(height, width, canv_height, canv_width):
             return canv_height, round(width * (canv_height / height))
         else:
             return round(height * (canv_width / width)), canv_width
-    
 
-
-
-    """if height <= canv_height and width <= canv_width:
-        return height, width
-    elif height > canv_height and width <= canv_width:
-        return canv_height, round(width * (canv_height / height))
-    elif height <= canv_height and width > canv_width:
-        return round(height * (canv_width / width)), canv_width
-    else:
-        return canv_height, canv_width
-    """
 
 
 def canvas_reshape(height, width, canv_height, canv_width):
@@ -84,8 +76,16 @@ def show_image(img_number):
     global images
     global canvas
     global lock_on
+    global rotation
     global actual_image #without storing image here, garbage collector takes the image away
     image_for_canvas_new = Image.open(images[img_number])
+    # rotating image if its rotated
+    if rotation == 1:
+        image_for_canvas_new = image_for_canvas_new.rotate(-90)
+    elif rotation == -1:
+        image_for_canvas_new = image_for_canvas_new.rotate(90)
+    elif rotation == 2:
+        image_for_canvas_new = image_for_canvas_new.rotate(180)
     # if the window is locked, fit the image in window
     # else fit it and window into the monitor
     if not lock_on.get():
@@ -98,19 +98,12 @@ def show_image(img_number):
     actual_image = image1_new
     canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, anchor=CENTER, image=image1_new)
     canvas.grid(row=0, column=0, columnspan=3)
-    print(actual_image.width() / actual_image.height())
+    #print(actual_image.width() / actual_image.height())
+    print("size of pil image:", sys.getsizeof(image_for_canvas_new))
+    print("size of tk image:", sys.getsizeof(image1_new))
+    print("size of size_of_image_new tuple:", sys.getsizeof(size_of_image_new))
 
 
-
-"""
-# Loading the first image
-
-image = Image.open(images[current_image]).resize((400, 400))
-image1 = ImageTk.PhotoImage(image)
-
-image1_label = Label(image=image1)
-image1_label.grid(row=0, column=0, columnspan=3)
-"""
 
 # Initializing canvas for images to be put into
 canvas = tkinter.Canvas(root, height=1, width=1)
@@ -119,25 +112,10 @@ canvas.grid(row=0, column=0, columnspan=3)
 show_image(current_image)
 #actual_image = ImageTk.PhotoImage()
 
-"""
-image_for_canvas = Image.open(images[current_image])
-size_of_image = max_size_reshape(image_for_canvas.height, image_for_canvas.width)
-canvas.config(height=size_of_image[0], width=size_of_image[1])
-image1 = ImageTk.PhotoImage(image_for_canvas.resize((size_of_image[1], size_of_image[0])))
-image = canvas.create_image(size_of_image[1]/2, size_of_image[0]/2, anchor=CENTER, image=image1)
-"""
 
 # storing current image in this variable, so garbage collector wouldn't get it
 # actual_image = image1
 
-
-
-
-
-
-#photoss = ImageTk.PhotoImage(images[0])
-#w = Canvas(root)
-#w.create_image(0, 0, 50, 50, image=photoss)
 
 
 def next_image(img_number):
@@ -145,10 +123,14 @@ def next_image(img_number):
     global images
     global current_image
     global canvas
+    global rotation
     global actual_image
 
     # Calculating the next image number in list
     current_image += (img_number - current_image)
+
+    # Resetting rotation
+    rotation = 0
 
     # Showing the current image index
     label2 = Label(root, text=current_image)
@@ -156,23 +138,6 @@ def next_image(img_number):
 
 
     # Replacing the old image with a new one
-    """
-    image1_label.grid_forget()
-    image_new = Image.open(images[current_image]).resize((400, 400))
-    image1_new = ImageTk.PhotoImage(image_new)
-    actual_image = image1_new
-    image1_label = Label(image=actual_image)
-    """
-
-    """
-    image_for_canvas_new = Image.open(images[current_image])
-    size_of_image_new = max_size_reshape(image_for_canvas_new.height, image_for_canvas_new.width)
-    canvas.config(height=size_of_image_new[0], width=size_of_image_new[1])
-    image1_new = ImageTk.PhotoImage(image_for_canvas_new.resize((size_of_image_new[1], size_of_image_new[0])))
-    actual_image = image1_new
-    image_new = canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, anchor=CENTER, image=image1_new)
-    canvas.grid(row=0, column=0, columnspan=3)
-    """
     show_image(current_image)
     # Making the image viewer cycle through images
     next, previous = 0, 0
@@ -195,7 +160,7 @@ def next_image(img_number):
 
 
 def zoom(var):
-    """function that resizes an image based on the slider value"""
+    """function that resizes an image based on button pressed"""
     global images
     global current_image
     global canvas
@@ -205,53 +170,55 @@ def zoom(var):
     global monitor_height
     global checkbox_Lock
 
-
     size_of_image = (actual_image.height(), actual_image.width())
-    """
-    image1_label.grid_forget()
-    if var == 1:
-        image_new = Image.open(images[current_image]).resize((round(size_of_image[0] * 1.5), round((size_of_image[1] * 1.5))))
-    else:
-        image_new = Image.open(images[current_image]).resize((round(size_of_image[0] * 0.75), round((size_of_image[1] * 0.75))))
-    image1_new = ImageTk.PhotoImage(image_new)
-    actual_image = image1_new
-    image1_label = Label(image=actual_image)
-    image1_label.grid(row=0, column=0, columnspan=3)
-
-    label = Label(root, text=size_of_image)
-    label.grid(row=3, column=0)
-    """
+    # if zooming in then first part, of zooming out then second
     if var == 1:
         image_for_canvas_new = Image.open(images[current_image]).resize(
             (round(size_of_image[1] * 1.5), round(size_of_image[0] * 1.5)))
     else:
         image_for_canvas_new = Image.open(images[current_image]).resize(
             (round(size_of_image[1] * 0.75), round(size_of_image[0] * 0.75)))
+
+
+    # rotating image if its rotated
+    if rotation == 1:
+        image_for_canvas_new = image_for_canvas_new.rotate(-90)
+    elif rotation == -1:
+        image_for_canvas_new = image_for_canvas_new.rotate(90)
+    elif rotation == 2:
+        image_for_canvas_new = image_for_canvas_new.rotate(180)
+
     size_of_image_new = (image_for_canvas_new.height, image_for_canvas_new.width)
     size_of_canvas_new = size_of_image_new
     if not lock_on.get():
         # if zoomed-in image gets bigger than monitor, function stops expanding window; the image within canvas always expands
         if size_of_canvas_new[0] > monitor_height - 100 or size_of_canvas_new[1] > monitor_width - 100:
-            print("image: ", size_of_image_new, " canvas old: ", size_of_canvas_new)
+            #print("image: ", size_of_image_new, " canvas old: ", size_of_canvas_new)
             size_of_canvas_new = canvas_reshape(size_of_canvas_new[0], size_of_canvas_new[1],
-                                                     monitor_height - 350, monitor_width - 350)
+                                                     monitor_height - 180, monitor_width - 180)
             #checkbox_Lock.select()
-            print("image: ", size_of_image_new, " canvas new: ", size_of_canvas_new)
+            #print("image: ", size_of_image_new, " canvas new: ", size_of_canvas_new)
         canvas.config(height=size_of_canvas_new[0], width=size_of_canvas_new[1])
-
+    print(size_of_image_new[0]/size_of_image_new[1])
     image1_new = ImageTk.PhotoImage(image_for_canvas_new.resize((size_of_image_new[1], size_of_image_new[0])))
     actual_image = image1_new
     canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, anchor=CENTER, image=image1_new)
     canvas.grid(row=0, column=0, columnspan=3)
-
     #zoom_slider = Scale(root, from_=0, to=400, length=canvas.winfo_height())
     #zoom_slider.grid(row=0, column=3)
 
-
-
-
-#label = Label(root, text=str(root.winfo_screenwidth()) + " " + str(root.winfo_screenheight()))
-#label.grid(row=3, column=0)
+def rotate_image(direction):
+    global rotation
+    global current_image
+    if direction:
+        rotation += 1
+        if rotation > 2:
+            rotation = -1
+    else:
+        rotation -= 1
+        if rotation < -1:
+            rotation = 2
+    show_image(current_image)
 
 #label = Label(root, text=)
 #label.grid(row=3, column=0)
@@ -283,8 +250,11 @@ button_zoom.grid(row=2, column=2)
 button_zoom = Button(root, text="Zoom Out", command=lambda: zoom(0))
 button_zoom.grid(row=2, column=0)
 
-button_zoom = Button(root, text="Lock window size", command=locking)
+button_zoom = Button(root, text="Rotate right", command=lambda: rotate_image(True))
 button_zoom.grid(row=3, column=2)
+
+button_zoom = Button(root, text="Rotate left", command=lambda: rotate_image(False))
+button_zoom.grid(row=3, column=0)
 
 checkbox_Lock = Checkbutton(root, text="Lock window size", variable=lock_on, onvalue=True, offvalue=False)
 checkbox_Lock.deselect()
