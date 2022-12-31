@@ -1,27 +1,30 @@
 import sys
 import tkinter
 from tkinter import *
+from tkinter import filedialog
 from PIL import ImageTk, Image
 import os
 
 root = Tk()
 root.title("Images")
-#root.configure(background="gray")
+# root.configure(background="gray")
 
+# storing the current image directory path
+current_dir_path = os.getcwd()
 
-#Creating a list of image file names
+# Creating a list of image file names
 images=[]
 for f in os.listdir('.'):
     if f.endswith('.jpg'):
         images.append(f)
 
-#global current_image - use 'global' only in functions, not here
+# global current_image - use 'global' only in functions, not here
 current_image = 0
 
-#variable for window size lock
+# variable for window size lock
 lock_on = BooleanVar()
 
-#variable for rotation
+# variable for rotation
 rotation = 0
 
 # Getting the monitor screen height and width
@@ -30,6 +33,7 @@ monitor_width = root.winfo_screenwidth()
 
 
 def locking():
+    """changing the lock_on value based on checkbox alteration"""
     global lock_on
     lock_on = not lock_on
 
@@ -67,7 +71,19 @@ def canvas_reshape(height, width, canv_height, canv_width):
             print(2)
             return min(round(height * (canv_width / width)), canv_height), min(width, canv_width)
 
-
+def rotate_image(direction):
+    """function that changes the rotation value depending on the button pressed"""
+    global rotation
+    global current_image
+    if direction:
+        rotation += 1
+        if rotation > 2:
+            rotation = -1
+    else:
+        rotation -= 1
+        if rotation < -1:
+            rotation = 2
+    show_image(current_image)
 
 
 
@@ -77,8 +93,11 @@ def show_image(img_number):
     global canvas
     global lock_on
     global rotation
+    global current_dir_path
     global actual_image #without storing image here, garbage collector takes the image away
-    image_for_canvas_new = Image.open(images[img_number])
+
+    image_for_canvas_new = Image.open(current_dir_path + "/" + images[img_number])
+
     # rotating image if its rotated
     if rotation == 1:
         image_for_canvas_new = image_for_canvas_new.rotate(-90)
@@ -86,6 +105,7 @@ def show_image(img_number):
         image_for_canvas_new = image_for_canvas_new.rotate(90)
     elif rotation == 2:
         image_for_canvas_new = image_for_canvas_new.rotate(180)
+
     # if the window is locked, fit the image in window
     # else fit it and window into the monitor
     if not lock_on.get():
@@ -94,14 +114,13 @@ def show_image(img_number):
     else:
         size_of_image_new = lock_on_size_reshape(image_for_canvas_new.height, image_for_canvas_new.width,
                                                  canvas.winfo_height(), canvas.winfo_width())
+
     image1_new = ImageTk.PhotoImage(image_for_canvas_new.resize((size_of_image_new[1], size_of_image_new[0])))
     actual_image = image1_new
     canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, anchor=CENTER, image=image1_new)
     canvas.grid(row=0, column=0, columnspan=3)
-    #print(actual_image.width() / actual_image.height())
-    print("size of pil image:", sys.getsizeof(image_for_canvas_new))
-    print("size of tk image:", sys.getsizeof(image1_new))
-    print("size of size_of_image_new tuple:", sys.getsizeof(size_of_image_new))
+
+
 
 
 
@@ -109,7 +128,8 @@ def show_image(img_number):
 canvas = tkinter.Canvas(root, height=1, width=1)
 canvas.grid(row=0, column=0, columnspan=3)
 # Loading the first image
-show_image(current_image)
+if images:
+    show_image(current_image)
 #actual_image = ImageTk.PhotoImage()
 
 
@@ -169,14 +189,15 @@ def zoom(var):
     global monitor_width
     global monitor_height
     global checkbox_Lock
+    global current_dir_path
 
     size_of_image = (actual_image.height(), actual_image.width())
-    # if zooming in then first part, of zooming out then second
+    # if zooming in then first part, if zooming out then second
     if var == 1:
-        image_for_canvas_new = Image.open(images[current_image]).resize(
+        image_for_canvas_new = Image.open(current_dir_path + "/" + images[current_image]).resize(
             (round(size_of_image[1] * 1.5), round(size_of_image[0] * 1.5)))
     else:
-        image_for_canvas_new = Image.open(images[current_image]).resize(
+        image_for_canvas_new = Image.open(current_dir_path + "/" + images[current_image]).resize(
             (round(size_of_image[1] * 0.75), round(size_of_image[0] * 0.75)))
 
 
@@ -207,25 +228,54 @@ def zoom(var):
     #zoom_slider = Scale(root, from_=0, to=400, length=canvas.winfo_height())
     #zoom_slider.grid(row=0, column=3)
 
-def rotate_image(direction):
-    global rotation
+
+
+def open_image():
+    """function that allows the user to choose a picture on their computer"""
+    global images
     global current_image
-    if direction:
-        rotation += 1
-        if rotation > 2:
-            rotation = -1
-    else:
-        rotation -= 1
-        if rotation < -1:
-            rotation = 2
-    show_image(current_image)
+    global current_dir_path
+
+    # handling the error of not choosing a file
+    try:
+        filename = filedialog.askopenfilename(initialdir=current_dir_path, title="Choose an image",
+                                                filetypes=(("jpg files", "*.jpg"), ("all files", "*.*")))
+    except FileNotFoundError as err:
+        print("Error", err)
+        filename = ""
+
+    print("filename "+ filename)
+    # only doing the rest if a filename was chosen
+    if filename != "":
+
+        # storing the directory location
+        current_dir_path = os.path.dirname(filename)
+
+        # emptying the image file names list
+        images.clear()
+
+        # index_counter and name of file to store the index of chosen image within the created images list
+        index_filename = 0
+        filename_end = os.path.basename(filename)
+
+        # filling the images list with filenames
+        for f in os.listdir(current_dir_path):
+            if f.endswith('.jpg'):
+                images.append(f)
+                if f == filename_end:  # if current is the chosen image - we remember it as the one to show first
+                    current_image = index_filename
+                index_filename += 1
+
+        # putting the image on screen
+        show_image(current_image)
+
 
 #label = Label(root, text=)
 #label.grid(row=3, column=0)
 
 
 # Buttons when loading the program. If only one image in folder, the buttons are Disabled
-amount_of_images = len(images)
+amount_of_images = 2  #len(images)
 if amount_of_images > 1:
     button_next = Button(root, text="Next ->", command=lambda: next_image(1))
     button_next.grid(row=1, column=2)
@@ -237,8 +287,8 @@ else:
     button_back = Button(root, text="<- Back", command=DISABLED)
     button_back.grid(row=1, column=0)
 
-button_delete = Button(root, text="hide image")
-button_delete.grid(row=1, column=1)
+button_open = Button(root, text="open image", command=open_image)
+button_open.grid(row=1, column=1)
 
 
 
