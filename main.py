@@ -3,6 +3,7 @@ import tkinter
 from tkinter import *
 from tkinter import filedialog
 from PIL import ImageTk, Image
+import time
 import os
 
 root = Tk()
@@ -30,6 +31,10 @@ rotation = 0
 # Getting the monitor screen height and width
 monitor_height = root.winfo_screenheight()
 monitor_width = root.winfo_screenwidth()
+
+# The coordinates of zoomed image point we look at
+moving_shift_X = 0
+moving_shift_Y = 0
 
 
 def locking():
@@ -85,6 +90,23 @@ def rotate_image(direction):
             rotation = 2
     show_image(current_image)
 
+def moving_pictures(var):
+    global canvas
+    global canvas_image_to_move
+    global moving_shift_X
+    global moving_shift_Y
+    canvas.move(canvas_image_to_move, zoom_hor_slider.get() - moving_shift_X, zoom_ver_slider.get() - moving_shift_Y)
+    moving_shift_X = zoom_hor_slider.get()
+    moving_shift_Y = zoom_ver_slider.get()
+    """
+    if is_horizontal:
+        canvas.move(canvas_image_to_move, zoom_hor_slider.get() - moving_shift_X, zoom_ver_slider.get() - moving_shift_Y)
+        moving_shift_X = zoom_hor_slider.get()
+    else:
+        canvas.move(canvas_image_to_move, 0, )
+        moving_shift_Y = zoom_ver_slider.get()
+    """
+
 
 
 def show_image(img_number):
@@ -117,8 +139,9 @@ def show_image(img_number):
 
     image1_new = ImageTk.PhotoImage(image_for_canvas_new.resize((size_of_image_new[1], size_of_image_new[0])))
     actual_image = image1_new
-    canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, anchor=CENTER, image=image1_new)
+    canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, image=image1_new)
     canvas.grid(row=0, column=0, columnspan=3)
+
 
 
 
@@ -126,6 +149,7 @@ def show_image(img_number):
 
 # Initializing canvas for images to be put into
 canvas = tkinter.Canvas(root, height=1, width=1)
+canvas_image_to_move = canvas.create_image(1, 1)
 canvas.grid(row=0, column=0, columnspan=3)
 # Loading the first image
 if images:
@@ -134,7 +158,7 @@ if images:
 
 
 # storing current image in this variable, so garbage collector wouldn't get it
-# actual_image = image1
+actual_image
 
 
 
@@ -145,6 +169,8 @@ def next_image(img_number):
     global canvas
     global rotation
     global actual_image
+    global zoom_ver_slider
+    global zoom_hor_slider
 
     # Calculating the next image number in list
     current_image += (img_number - current_image)
@@ -152,9 +178,13 @@ def next_image(img_number):
     # Resetting rotation
     rotation = 0
 
+    # Removing the sliders if they are there
+    zoom_ver_slider.grid_forget()
+    zoom_hor_slider.grid_forget()
+
     # Showing the current image index
     label2 = Label(root, text=current_image)
-    label2.grid(row=2, column=0)
+    label2.grid(row=4, column=1)
 
 
     # Replacing the old image with a new one
@@ -173,13 +203,13 @@ def next_image(img_number):
 
     # Remapping the buttons to new images
     button_next = Button(root, text="Next ->", command=lambda: next_image(next))
-    button_next.grid(row=1, column=2)
+    button_next.grid(row=2, column=2)
     button_back = Button(root, text="<- Back", command=lambda: next_image(previous))
-    button_back.grid(row=1, column=0)
+    button_back.grid(row=2, column=0)
 
 
 
-def zoom(var):
+def zoom(is_zoom_in):
     """function that resizes an image based on button pressed"""
     global images
     global current_image
@@ -190,10 +220,13 @@ def zoom(var):
     global monitor_height
     global checkbox_Lock
     global current_dir_path
+    global zoom_ver_slider
+    global zoom_hor_slider
+    global canvas_image_to_move
 
     size_of_image = (actual_image.height(), actual_image.width())
     # if zooming in then first part, if zooming out then second
-    if var == 1:
+    if is_zoom_in:
         image_for_canvas_new = Image.open(current_dir_path + "/" + images[current_image]).resize(
             (round(size_of_image[1] * 1.5), round(size_of_image[0] * 1.5)))
     else:
@@ -209,6 +242,8 @@ def zoom(var):
     elif rotation == 2:
         image_for_canvas_new = image_for_canvas_new.rotate(180)
 
+    zoom_ver_slider.grid_forget()
+    zoom_hor_slider.grid_forget()
     size_of_image_new = (image_for_canvas_new.height, image_for_canvas_new.width)
     size_of_canvas_new = size_of_image_new
     if not lock_on.get():
@@ -217,13 +252,15 @@ def zoom(var):
             #print("image: ", size_of_image_new, " canvas old: ", size_of_canvas_new)
             size_of_canvas_new = canvas_reshape(size_of_canvas_new[0], size_of_canvas_new[1],
                                                      monitor_height - 180, monitor_width - 180)
-            #checkbox_Lock.select()
-            #print("image: ", size_of_image_new, " canvas new: ", size_of_canvas_new)
+            zoom_ver_slider = Scale(root, from_=0, to=-size_of_image_new[0]/2, length=size_of_canvas_new[0], showvalue=0, command=moving_pictures)
+            zoom_ver_slider.grid(row=0, column=3)
+            zoom_hor_slider = Scale(root, from_=0, to=-size_of_image_new[1]/2, length=size_of_canvas_new[1], orient="horizontal", showvalue=0, command=moving_pictures)
+            zoom_hor_slider.grid(row=1, column=0, columnspan=3)
         canvas.config(height=size_of_canvas_new[0], width=size_of_canvas_new[1])
     print(size_of_image_new[0]/size_of_image_new[1])
     image1_new = ImageTk.PhotoImage(image_for_canvas_new.resize((size_of_image_new[1], size_of_image_new[0])))
     actual_image = image1_new
-    canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, anchor=CENTER, image=image1_new)
+    canvas_image_to_move = canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, anchor=CENTER, image=image1_new)
     canvas.grid(row=0, column=0, columnspan=3)
     #zoom_slider = Scale(root, from_=0, to=400, length=canvas.winfo_height())
     #zoom_slider.grid(row=0, column=3)
@@ -269,6 +306,10 @@ def open_image():
         # putting the image on screen
         show_image(current_image)
 
+def show_gif():
+    """function for playing a gif"""
+
+
 
 #label = Label(root, text=)
 #label.grid(row=3, column=0)
@@ -278,37 +319,40 @@ def open_image():
 amount_of_images = 2  #len(images)
 if amount_of_images > 1:
     button_next = Button(root, text="Next ->", command=lambda: next_image(1))
-    button_next.grid(row=1, column=2)
+    button_next.grid(row=2, column=2)
     button_back = Button(root, text="<- Back", command=lambda: next_image(len(images) - 1))
-    button_back.grid(row=1, column=0)
+    button_back.grid(row=2, column=0)
 else:
     button_next = Button(root, text="Next ->", command=DISABLED)
-    button_next.grid(row=1, column=2)
+    button_next.grid(row=2, column=2)
     button_back = Button(root, text="<- Back", command=DISABLED)
-    button_back.grid(row=1, column=0)
+    button_back.grid(row=2, column=0)
 
 button_open = Button(root, text="open image", command=open_image)
-button_open.grid(row=1, column=1)
+button_open.grid(row=2, column=1)
 
 
 
 
 
-button_zoom = Button(root, text="Zoom In", command=lambda: zoom(1))
-button_zoom.grid(row=2, column=2)
-
-button_zoom = Button(root, text="Zoom Out", command=lambda: zoom(0))
-button_zoom.grid(row=2, column=0)
-
-button_zoom = Button(root, text="Rotate right", command=lambda: rotate_image(True))
+button_zoom = Button(root, text="Zoom In", command=lambda: zoom(True))
 button_zoom.grid(row=3, column=2)
 
-button_zoom = Button(root, text="Rotate left", command=lambda: rotate_image(False))
+button_zoom = Button(root, text="Zoom Out", command=lambda: zoom(False))
 button_zoom.grid(row=3, column=0)
+
+button_zoom = Button(root, text="Rotate right", command=lambda: rotate_image(True))
+button_zoom.grid(row=4, column=2)
+
+button_zoom = Button(root, text="Rotate left", command=lambda: rotate_image(False))
+button_zoom.grid(row=4, column=0)
 
 checkbox_Lock = Checkbutton(root, text="Lock window size", variable=lock_on, onvalue=True, offvalue=False)
 checkbox_Lock.deselect()
 checkbox_Lock.grid(row=3, column=1)
+
+zoom_hor_slider = Scale(root, from_=0, to=10, length=1, command=moving_pictures)
+zoom_ver_slider = Scale(root, from_=0, to=10, length=1, command=moving_pictures)
 
 print(monitor_height, monitor_width)
 
