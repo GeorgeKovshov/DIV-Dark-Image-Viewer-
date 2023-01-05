@@ -91,6 +91,7 @@ def rotate_image(direction):
     show_image(current_image)
 
 def moving_pictures(var):
+    """moving zoomed-in image with the sliders"""
     global canvas
     global canvas_image_to_move
     global moving_shift_X
@@ -106,6 +107,18 @@ def moving_pictures(var):
         canvas.move(canvas_image_to_move, 0, )
         moving_shift_Y = zoom_ver_slider.get()
     """
+def moving_mouse(e):
+    """moving zoomed-in image with the mouse"""
+    #e.x
+    #e.y
+    global canvas
+    global canvas_image_to_move
+    global moving_shift_X
+    global moving_shift_Y
+    canvas.move(canvas_image_to_move, e.x - 100 - moving_shift_X, e.y - 100 - moving_shift_Y)
+    print("x: ", e.x, "y:", e.y)
+    moving_shift_X = e.x - 100
+    moving_shift_Y = e.y - 100
 
 
 
@@ -222,6 +235,8 @@ def zoom(is_zoom_in):
     global current_dir_path
     global zoom_ver_slider
     global zoom_hor_slider
+    global moving_shift_X
+    global moving_shift_Y
     global canvas_image_to_move
 
     size_of_image = (actual_image.height(), actual_image.width())
@@ -252,9 +267,12 @@ def zoom(is_zoom_in):
             #print("image: ", size_of_image_new, " canvas old: ", size_of_canvas_new)
             size_of_canvas_new = canvas_reshape(size_of_canvas_new[0], size_of_canvas_new[1],
                                                      monitor_height - 180, monitor_width - 180)
-            zoom_ver_slider = Scale(root, from_=0, to=-size_of_image_new[0]/2, length=size_of_canvas_new[0], showvalue=0, command=moving_pictures)
+            moving_shift_X = 0
+            moving_shift_Y = 0
+            canvas.bind("<B1-Motion>", moving_mouse)
+            zoom_ver_slider = Scale(root, from_=0, to=-size_of_image_new[0] + size_of_canvas_new[0], length=size_of_canvas_new[0], showvalue=0, command=moving_pictures)
             zoom_ver_slider.grid(row=0, column=3)
-            zoom_hor_slider = Scale(root, from_=0, to=-size_of_image_new[1]/2, length=size_of_canvas_new[1], orient="horizontal", showvalue=0, command=moving_pictures)
+            zoom_hor_slider = Scale(root, from_=0, to=-size_of_image_new[1] + size_of_canvas_new[1], length=size_of_canvas_new[1], orient="horizontal", showvalue=0, command=moving_pictures)
             zoom_hor_slider.grid(row=1, column=0, columnspan=3)
         canvas.config(height=size_of_canvas_new[0], width=size_of_canvas_new[1])
     print(size_of_image_new[0]/size_of_image_new[1])
