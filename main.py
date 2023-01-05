@@ -115,10 +115,19 @@ def moving_mouse(e):
     global canvas_image_to_move
     global moving_shift_X
     global moving_shift_Y
-    canvas.move(canvas_image_to_move, e.x - 100 - moving_shift_X, e.y - 100 - moving_shift_Y)
-    print("x: ", e.x, "y:", e.y)
-    moving_shift_X = e.x - 100
-    moving_shift_Y = e.y - 100
+    #if abs(moving_shift_Y - e.y) > 200 or moving_shift_Y == 0:
+    #    moving_shift_Y = e.y - canvas.winfo_height() / 2 - 1
+    #if abs(moving_shift_X - e.x) > 200 or moving_shift_X == 0:
+    #    moving_shift_X = e.x - canvas.winfo_width() / 2 - 1
+    if abs(moving_shift_Y - e.y) < 10 or abs(moving_shift_X - e.x) < 10:
+        canvas.move(canvas_image_to_move, e.x  - moving_shift_X, e.y - moving_shift_Y)
+    print("x: ", e.x, "y:", e.y, "moving X:", moving_shift_X, "moving Y:", moving_shift_Y)
+    moving_shift_X = e.x
+    moving_shift_Y = e.y
+    #canvas.move(canvas_image_to_move, e.x - actual_image.width()/2 - moving_shift_X, e.y - actual_image.height()/2 - moving_shift_Y)
+    #print("x: ", e.x, "y:", e.y)
+    #moving_shift_X = e.x - actual_image.width()/2
+    #moving_shift_Y = e.y - actual_image.height()/2
 
 
 
