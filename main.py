@@ -119,11 +119,38 @@ def moving_mouse(e):
     #    moving_shift_Y = e.y - canvas.winfo_height() / 2 - 1
     #if abs(moving_shift_X - e.x) > 200 or moving_shift_X == 0:
     #    moving_shift_X = e.x - canvas.winfo_width() / 2 - 1
-    if abs(moving_shift_Y - e.y) < 10 or abs(moving_shift_X - e.x) < 10:
-        canvas.move(canvas_image_to_move, e.x  - moving_shift_X, e.y - moving_shift_Y)
+    image_coordinates = canvas.bbox(canvas_image_to_move)
+    x_movement = e.x - moving_shift_X  # calculating horizontal movement value
+    y_movement = e.y - moving_shift_Y  # calculating vertical movement value
+    # calculating the coordinates of the image boundaries in relation to canvas
+    y_stop = abs(image_coordinates[1]) + abs(image_coordinates[3]) - canvas.winfo_height()
+    x_stop = abs(image_coordinates[0]) + abs(image_coordinates[2]) - canvas.winfo_width()
+    """Testing version
+    if -y_stop <= image_coordinates[1] + y_movement <= 0:
+        if abs(y_movement) < 15:
+            canvas.move(canvas_image_to_move, 0, y_movement)
+        elif y_movement > 0:
+            canvas.move(canvas_image_to_move, 0, 0)
+        elif y_movement < 0:
+            canvas.move(canvas_image_to_move, 0, -0)
+    if -x_stop <= image_coordinates[0] + x_movement <= 0:
+        if abs(x_movement) < 15:
+            canvas.move(canvas_image_to_move, x_movement, 0)
+        elif x_movement > 0:
+            canvas.move(canvas_image_to_move, 0, 0)
+        elif x_movement < 0:
+            canvas.move(canvas_image_to_move, -0, 0)
+    """
+    """ Working version"""
+    if abs(y_movement) < 15 and -y_stop <= image_coordinates[1] + y_movement <= 0:
+        canvas.move(canvas_image_to_move, 0, y_movement)
+    if abs(x_movement) < 15 and -x_stop <= image_coordinates[0] + x_movement <= 0:
+        canvas.move(canvas_image_to_move, x_movement, 0)
+
     print("x: ", e.x, "y:", e.y, "moving X:", moving_shift_X, "moving Y:", moving_shift_Y)
     moving_shift_X = e.x
     moving_shift_Y = e.y
+    #print(canvas.bbox(canvas_image_to_move))
     #canvas.move(canvas_image_to_move, e.x - actual_image.width()/2 - moving_shift_X, e.y - actual_image.height()/2 - moving_shift_Y)
     #print("x: ", e.x, "y:", e.y)
     #moving_shift_X = e.x - actual_image.width()/2
@@ -284,11 +311,13 @@ def zoom(is_zoom_in):
             zoom_hor_slider = Scale(root, from_=0, to=-size_of_image_new[1] + size_of_canvas_new[1], length=size_of_canvas_new[1], orient="horizontal", showvalue=0, command=moving_pictures)
             zoom_hor_slider.grid(row=1, column=0, columnspan=3)
         canvas.config(height=size_of_canvas_new[0], width=size_of_canvas_new[1])
-    print(size_of_image_new[0]/size_of_image_new[1])
+    print(size_of_image_new[0], " ", size_of_image_new[1])
     image1_new = ImageTk.PhotoImage(image_for_canvas_new.resize((size_of_image_new[1], size_of_image_new[0])))
     actual_image = image1_new
     canvas_image_to_move = canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, anchor=CENTER, image=image1_new)
     canvas.grid(row=0, column=0, columnspan=3)
+    print(canvas.bbox(canvas_image_to_move))
+    print(canvas.winfo_height(), " ",  canvas.winfo_width())
     #zoom_slider = Scale(root, from_=0, to=400, length=canvas.winfo_height())
     #zoom_slider.grid(row=0, column=3)
 
