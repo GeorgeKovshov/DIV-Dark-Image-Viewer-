@@ -107,6 +107,13 @@ def moving_pictures(var):
         canvas.move(canvas_image_to_move, 0, )
         moving_shift_Y = zoom_ver_slider.get()
     """
+def mouse_release(e):
+    global moving_shift_Y
+    global moving_shift_X
+
+    moving_shift_X = 0
+    moving_shift_Y = 0
+
 def moving_mouse(e):
     """moving zoomed-in image with the mouse"""
     #e.x
@@ -141,10 +148,15 @@ def moving_mouse(e):
         elif x_movement < 0:
             canvas.move(canvas_image_to_move, -0, 0)
     """
-    """ Working version"""
-    if abs(y_movement) < 15 and -y_stop <= image_coordinates[1] + y_movement <= 0:
+    """
+    if abs(y_movement) and < 15 -y_stop <= image_coordinates[1] + y_movement <= 0:
         canvas.move(canvas_image_to_move, 0, y_movement)
-    if abs(x_movement) < 15 and -x_stop <= image_coordinates[0] + x_movement <= 0:
+    if abs(x_movement) and-x_stop <= image_coordinates[0] + x_movement <= 0:
+        canvas.move(canvas_image_to_move, x_movement, 0)
+    Working version"""
+    if -y_stop <= image_coordinates[1] + y_movement <= 0 and moving_shift_Y != 0:
+        canvas.move(canvas_image_to_move, 0, y_movement)
+    if -x_stop <= image_coordinates[0] + x_movement <= 0 and moving_shift_X != 0:
         canvas.move(canvas_image_to_move, x_movement, 0)
 
     print("x: ", e.x, "y:", e.y, "moving X:", moving_shift_X, "moving Y:", moving_shift_Y)
@@ -306,6 +318,7 @@ def zoom(is_zoom_in):
             moving_shift_X = 0
             moving_shift_Y = 0
             canvas.bind("<B1-Motion>", moving_mouse)
+            canvas.bind("<ButtonRelease-1>", mouse_release)
             zoom_ver_slider = Scale(root, from_=0, to=-size_of_image_new[0] + size_of_canvas_new[0], length=size_of_canvas_new[0], showvalue=0, command=moving_pictures)
             zoom_ver_slider.grid(row=0, column=3)
             zoom_hor_slider = Scale(root, from_=0, to=-size_of_image_new[1] + size_of_canvas_new[1], length=size_of_canvas_new[1], orient="horizontal", showvalue=0, command=moving_pictures)
