@@ -108,9 +108,11 @@ def moving_pictures(var):
         moving_shift_Y = zoom_ver_slider.get()
     """
 def mouse_release(e):
+    """function that resets the moving parameters when mouse button is released"""
+    global canvas
     global moving_shift_Y
     global moving_shift_X
-
+    canvas.config(cursor="arrow")
     moving_shift_X = 0
     moving_shift_Y = 0
 
@@ -122,11 +124,14 @@ def moving_mouse(e):
     global canvas_image_to_move
     global moving_shift_X
     global moving_shift_Y
+    global zoom_ver_slider
+    global zoom_hor_slider
     #if abs(moving_shift_Y - e.y) > 200 or moving_shift_Y == 0:
     #    moving_shift_Y = e.y - canvas.winfo_height() / 2 - 1
     #if abs(moving_shift_X - e.x) > 200 or moving_shift_X == 0:
     #    moving_shift_X = e.x - canvas.winfo_width() / 2 - 1
     image_coordinates = canvas.bbox(canvas_image_to_move)
+    canvas.config(cursor="fleur")
     x_movement = e.x - moving_shift_X  # calculating horizontal movement value
     y_movement = e.y - moving_shift_Y  # calculating vertical movement value
     # calculating the coordinates of the image boundaries in relation to canvas
@@ -156,8 +161,10 @@ def moving_mouse(e):
     Working version"""
     if -y_stop <= image_coordinates[1] + y_movement <= 0 and moving_shift_Y != 0:
         canvas.move(canvas_image_to_move, 0, y_movement)
+        #zoom_ver_slider.set(zoom_ver_slider.get() + y_movement)
     if -x_stop <= image_coordinates[0] + x_movement <= 0 and moving_shift_X != 0:
         canvas.move(canvas_image_to_move, x_movement, 0)
+        #zoom_hor_slider.set(zoom_hor_slider.get() + x_movement)
 
     print("x: ", e.x, "y:", e.y, "moving X:", moving_shift_X, "moving Y:", moving_shift_Y)
     moving_shift_X = e.x
