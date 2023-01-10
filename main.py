@@ -9,6 +9,16 @@ import os
 root = Tk()
 root.title("Images")
 # root.configure(background="gray")
+options_frame = Frame(root, relief="raised", bd=5)
+options_frame.grid(row=2, column=1)
+Grid.rowconfigure(root,0, weight=1)
+Grid.rowconfigure(root,1, weight=1)
+Grid.columnconfigure(root,0, weight=1)
+Grid.columnconfigure(root,1, weight=1)
+Grid.columnconfigure(root,2, weight=1)
+Grid.columnconfigure(root,3, weight=0)
+#Grid.columnconfigure(root,4, weight=1)
+
 
 # storing the current image directory path
 current_dir_path = os.getcwd()
@@ -224,6 +234,7 @@ def show_image(img_number):
     if not lock_on.get():
         size_of_image_new = max_size_reshape(image_for_canvas_new.height, image_for_canvas_new.width)
         canvas.config(height=size_of_image_new[0], width=size_of_image_new[1])
+        root.geometry("")
     else:
         size_of_image_new = lock_on_size_reshape(image_for_canvas_new.height, image_for_canvas_new.width,
                                                  canvas.winfo_height(), canvas.winfo_width())
@@ -232,6 +243,7 @@ def show_image(img_number):
     actual_image = image1_new
     canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, image=image1_new)
     canvas.grid(row=0, column=0, columnspan=3)
+
 
 
 
@@ -293,9 +305,9 @@ def next_image(img_number):
         previous = current_image - 1
 
     # Remapping the buttons to new images
-    button_next = Button(root, text="Next ->", command=lambda: next_image(next))
+    button_next = Button(options_frame, text="Next ->", command=lambda: next_image(next))
     button_next.grid(row=2, column=2)
-    button_back = Button(root, text="<- Back", command=lambda: next_image(previous))
+    button_back = Button(options_frame, text="<- Back", command=lambda: next_image(previous))
     button_back.grid(row=2, column=0)
 
 
@@ -339,6 +351,8 @@ def zoom(is_zoom_in):
     zoom_hor_slider.grid_forget()
     size_of_image_new = (image_for_canvas_new.height, image_for_canvas_new.width)
     size_of_canvas_new = size_of_image_new
+
+
     if not lock_on.get():
         # if zoomed-in image gets bigger than monitor, function stops expanding window; the image within canvas always expands
         if size_of_canvas_new[0] > monitor_height - 100 or size_of_canvas_new[1] > monitor_width - 100:
@@ -357,6 +371,19 @@ def zoom(is_zoom_in):
                                     length=size_of_canvas_new[1], orient="horizontal", showvalue=0, command=moving_pictures)
             zoom_hor_slider.grid(row=1, column=0, columnspan=3)
         canvas.config(height=size_of_canvas_new[0], width=size_of_canvas_new[1])
+    else:
+        moving_shift_X = 0
+        moving_shift_Y = 0
+        # we only put the sliders and activate the mouse movement function when image is zoomed-in
+        canvas.bind("<B1-Motion>", moving_mouse)
+        canvas.bind("<ButtonRelease-1>", mouse_release)
+        zoom_ver_slider = Scale(root, from_=0, to=-size_of_image_new[0] + size_of_canvas_new[0],
+                                length=canvas.winfo_height(), showvalue=0, command=moving_pictures)
+        zoom_ver_slider.grid(row=0, column=3)
+        zoom_hor_slider = Scale(root, from_=0, to=-size_of_image_new[1] + size_of_canvas_new[1],
+                                length=canvas.winfo_width(), orient="horizontal", showvalue=0, command=moving_pictures)
+        zoom_hor_slider.grid(row=1, column=0, columnspan=3)
+
     print(size_of_image_new[0], " ", size_of_image_new[1])
     image1_new = ImageTk.PhotoImage(image_for_canvas_new.resize((size_of_image_new[1], size_of_image_new[0])))
     actual_image = image1_new
@@ -420,36 +447,36 @@ def show_gif():
 # Buttons when loading the program. If only one image in folder, the buttons are Disabled
 amount_of_images = 2  #len(images)
 if amount_of_images > 1:
-    button_next = Button(root, text="Next ->", command=lambda: next_image(1))
+    button_next = Button(options_frame, text="Next ->", command=lambda: next_image(1))
     button_next.grid(row=2, column=2)
-    button_back = Button(root, text="<- Back", command=lambda: next_image(len(images) - 1))
+    button_back = Button(options_frame, text="<- Back", command=lambda: next_image(len(images) - 1))
     button_back.grid(row=2, column=0)
 else:
-    button_next = Button(root, text="Next ->", command=DISABLED)
+    button_next = Button(options_frame, text="Next ->", command=DISABLED)
     button_next.grid(row=2, column=2)
-    button_back = Button(root, text="<- Back", command=DISABLED)
+    button_back = Button(options_frame, text="<- Back", command=DISABLED)
     button_back.grid(row=2, column=0)
 
-button_open = Button(root, text="open image", command=open_image)
+button_open = Button(options_frame, text="open image", command=open_image)
 button_open.grid(row=2, column=1)
 
 
 
 
 
-button_zoom = Button(root, text="Zoom In", command=lambda: zoom(True))
+button_zoom = Button(options_frame, text="Zoom In", command=lambda: zoom(True))
 button_zoom.grid(row=3, column=2)
 
-button_zoom = Button(root, text="Zoom Out", command=lambda: zoom(False))
+button_zoom = Button(options_frame, text="Zoom Out", command=lambda: zoom(False))
 button_zoom.grid(row=3, column=0)
 
-button_zoom = Button(root, text="Rotate right", command=lambda: rotate_image(True))
+button_zoom = Button(options_frame, text="Rotate right", command=lambda: rotate_image(True))
 button_zoom.grid(row=4, column=2)
 
-button_zoom = Button(root, text="Rotate left", command=lambda: rotate_image(False))
+button_zoom = Button(options_frame, text="Rotate left", command=lambda: rotate_image(False))
 button_zoom.grid(row=4, column=0)
 
-checkbox_Lock = Checkbutton(root, text="Lock window size", variable=lock_on, onvalue=True, offvalue=False)
+checkbox_Lock = Checkbutton(options_frame, text="Lock window size", variable=lock_on, onvalue=True, offvalue=False)
 checkbox_Lock.deselect()
 checkbox_Lock.grid(row=3, column=1)
 

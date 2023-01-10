@@ -10,6 +10,12 @@ import os
 root = Tk()
 root.title("Images")
 
+Grid.rowconfigure(root,0, weight=1)
+Grid.columnconfigure(root,0, weight=1)
+
+frame = Frame(root, relief="flat", bd=50)
+frame.grid(row=1, column=0, sticky=S)
+
 bigger_than_window = False
 stop_e = False
 
@@ -64,16 +70,15 @@ def zoom():
 
     root.update()
 
-button_stop = Button(root, text="stop", command=stop)
-button_stop.grid(row=1, column=0)
-button_zoom = Button(root, text="zoom", command=zoom)
-button_zoom.grid(row=1, column=2)
+button_stop = Button(frame, text="stop", command=stop)
+button_stop.grid(row=0, column=0)
+button_zoom = Button(frame, text="zoom", command=zoom)
+button_zoom.grid(row=0, column=2)
 # opening the gif
 
 #image = Image.open("2016_Grand_Rapids_tornado_outbreak_radar_loop.gif")
-image = Image.open("KOXOBiN.gif")
-#image = Image.open("blow.gif")
-#image = Image.open("giphy (1).gif")
+#image = Image.open("KOXOBiN.gif")
+image = Image.open("giphy (1).gif")
 # storing the image height and width, so there'd be no function call for image.height/width
 gif_height = image.height
 gif_width = image.width
@@ -90,7 +95,7 @@ frame_count = image.n_frames
 
 
 canvas.create_image(gif_width / 2, gif_height / 2, anchor=CENTER, image=image_for_label)
-canvas.grid(row=0, column=0, columnspan=3)
+canvas.grid(row=0, column=0, columnspan=3, sticky=N+W+E)
 
 # initializing the index counter for frames
 ind = 0
@@ -104,7 +109,7 @@ while ind <= frame_count and not stop_e:
     #canvas.configure(height=gif_height, width=gif_width)
     image_for_label = ImageTk.PhotoImage(image.resize((gif_width, gif_height)))  # loading the next image
     canvas.create_image(gif_width / 2, gif_height / 2, anchor=CENTER, image=image_for_label)
-    canvas.grid(row=0, column=0, columnspan=3)
+    canvas.grid(row=0, column=0, columnspan=3, sticky=E)
 
     # making the gif loop:
     if ind == frame_count:
