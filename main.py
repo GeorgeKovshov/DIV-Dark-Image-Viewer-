@@ -8,15 +8,20 @@ import os
 
 root = Tk()
 root.title("Images")
+root.configure(background="#121212")
 # root.configure(background="gray")
 options_frame = Frame(root, relief="raised", bd=5)
-options_frame.grid(row=2, column=1)
-Grid.rowconfigure(root,0, weight=1)
-Grid.rowconfigure(root,1, weight=1)
-Grid.columnconfigure(root,0, weight=1)
-Grid.columnconfigure(root,1, weight=1)
-Grid.columnconfigure(root,2, weight=1)
-Grid.columnconfigure(root,3, weight=0)
+settings_frame = Frame(root, relief="sunken", bd=1)
+options_frame.grid(row=3, column=2)
+settings_frame.grid(row=0, column=0, columnspan=4, sticky=W)
+Grid.rowconfigure(root, 0, weight=0)
+Grid.rowconfigure(root, 1, weight=1)
+Grid.columnconfigure(root, 0, weight=1000)
+Grid.columnconfigure(root, 1, weight=1)
+Grid.columnconfigure(root, 2, weight=1)
+Grid.columnconfigure(root, 3, weight=1)
+Grid.columnconfigure(root, 4, weight=1)
+Grid.columnconfigure(root, 5, weight=1000)
 #Grid.columnconfigure(root,4, weight=1)
 
 
@@ -242,7 +247,7 @@ def show_image(img_number):
     image1_new = ImageTk.PhotoImage(image_for_canvas_new.resize((size_of_image_new[1], size_of_image_new[0])))
     actual_image = image1_new
     canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, image=image1_new)
-    canvas.grid(row=0, column=0, columnspan=3)
+    canvas.grid(row=1, column=1, columnspan=3)
 
 
 
@@ -252,8 +257,9 @@ def show_image(img_number):
 
 # Initializing canvas for images to be put into
 canvas = tkinter.Canvas(root, height=1, width=1)
+canvas.configure(background="#121212")
 canvas_image_to_move = canvas.create_image(1, 1)
-canvas.grid(row=0, column=0, columnspan=3)
+canvas.grid(row=1, column=1, columnspan=3)
 # Loading the first image
 if images:
     show_image(current_image)
@@ -366,10 +372,10 @@ def zoom(is_zoom_in):
             canvas.bind("<ButtonRelease-1>", mouse_release)
             zoom_ver_slider = Scale(root, from_=0, to=-size_of_image_new[0] + size_of_canvas_new[0],
                                     length=size_of_canvas_new[0], showvalue=0, command=moving_pictures)
-            zoom_ver_slider.grid(row=0, column=3)
+            zoom_ver_slider.grid(row=1, column=4)
             zoom_hor_slider = Scale(root, from_=0, to=-size_of_image_new[1] + size_of_canvas_new[1],
                                     length=size_of_canvas_new[1], orient="horizontal", showvalue=0, command=moving_pictures)
-            zoom_hor_slider.grid(row=1, column=0, columnspan=3)
+            zoom_hor_slider.grid(row=2, column=1, columnspan=3)
         canvas.config(height=size_of_canvas_new[0], width=size_of_canvas_new[1])
     else:
         moving_shift_X = 0
@@ -379,16 +385,16 @@ def zoom(is_zoom_in):
         canvas.bind("<ButtonRelease-1>", mouse_release)
         zoom_ver_slider = Scale(root, from_=0, to=-size_of_image_new[0] + size_of_canvas_new[0],
                                 length=canvas.winfo_height(), showvalue=0, command=moving_pictures)
-        zoom_ver_slider.grid(row=0, column=3)
+        zoom_ver_slider.grid(row=1, column=4)
         zoom_hor_slider = Scale(root, from_=0, to=-size_of_image_new[1] + size_of_canvas_new[1],
                                 length=canvas.winfo_width(), orient="horizontal", showvalue=0, command=moving_pictures)
-        zoom_hor_slider.grid(row=1, column=0, columnspan=3)
+        zoom_hor_slider.grid(row=2, column=1, columnspan=3)
 
     print(size_of_image_new[0], " ", size_of_image_new[1])
     image1_new = ImageTk.PhotoImage(image_for_canvas_new.resize((size_of_image_new[1], size_of_image_new[0])))
     actual_image = image1_new
     canvas_image_to_move = canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, anchor=CENTER, image=image1_new)
-    canvas.grid(row=0, column=0, columnspan=3)
+    canvas.grid(row=1, column=1, columnspan=3)
     print(canvas.bbox(canvas_image_to_move))
     print(canvas.winfo_height(), " ",  canvas.winfo_width())
     #zoom_slider = Scale(root, from_=0, to=400, length=canvas.winfo_height())
@@ -405,7 +411,8 @@ def open_image():
     # handling the error of not choosing a file
     try:
         filename = filedialog.askopenfilename(initialdir=current_dir_path, title="Choose an image",
-                                                filetypes=(("jpg files", "*.jpg"), ("all files", "*.*")))
+                                                filetypes=(("jpg files", "*.jpg"), ("png files", "*.png"),
+                                                           ("webp files", "*.webp"), ("all files", "*.*")))
     except FileNotFoundError as err:
         print("Error", err)
         filename = ""
@@ -426,7 +433,7 @@ def open_image():
 
         # filling the images list with filenames
         for f in os.listdir(current_dir_path):
-            if f.endswith('.jpg'):
+            if f.endswith(('.jpg', '.JPG', '.png', '.webp')):
                 images.append(f)
                 if f == filename_end:  # if current is the chosen image - we remember it as the one to show first
                     current_image = index_filename
@@ -465,20 +472,20 @@ button_open.grid(row=2, column=1)
 
 
 button_zoom = Button(options_frame, text="Zoom In", command=lambda: zoom(True))
-button_zoom.grid(row=3, column=2)
+button_zoom.grid(row=1, column=1)
 
 button_zoom = Button(options_frame, text="Zoom Out", command=lambda: zoom(False))
-button_zoom.grid(row=3, column=0)
+button_zoom.grid(row=3, column=1)
 
-button_zoom = Button(options_frame, text="Rotate right", command=lambda: rotate_image(True))
-button_zoom.grid(row=4, column=2)
+button_rotate_right = Button(options_frame, text="Rotate right", command=lambda: rotate_image(True))
+button_rotate_right.grid(row=1, column=0)
 
-button_zoom = Button(options_frame, text="Rotate left", command=lambda: rotate_image(False))
-button_zoom.grid(row=4, column=0)
+button_rotate_left = Button(options_frame, text="Rotate left", command=lambda: rotate_image(False))
+button_rotate_left.grid(row=1, column=2)
 
-checkbox_Lock = Checkbutton(options_frame, text="Lock window size", variable=lock_on, onvalue=True, offvalue=False)
+checkbox_Lock = Checkbutton(settings_frame, text="Lock window size", variable=lock_on, onvalue=True, offvalue=False)
 checkbox_Lock.deselect()
-checkbox_Lock.grid(row=3, column=1)
+checkbox_Lock.grid(row=4, column=1)
 
 zoom_hor_slider = Scale(root, from_=0, to=10, length=1, command=moving_pictures)
 zoom_ver_slider = Scale(root, from_=0, to=10, length=1, command=moving_pictures)
