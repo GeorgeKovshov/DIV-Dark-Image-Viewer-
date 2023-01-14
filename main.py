@@ -243,10 +243,14 @@ def show_image(img_number):
     else:
         size_of_image_new = lock_on_size_reshape(image_for_canvas_new.height, image_for_canvas_new.width,
                                                  canvas.winfo_height(), canvas.winfo_width())
-
     image1_new = ImageTk.PhotoImage(image_for_canvas_new.resize((size_of_image_new[1], size_of_image_new[0])))
     actual_image = image1_new
-    canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, image=image1_new)
+    if not lock_on.get():
+        canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, image=image1_new)
+    else:
+        canvas.create_image(canvas.winfo_width()/2, canvas.winfo_height()/2, image=image1_new)
+
+
     canvas.grid(row=1, column=1, columnspan=3)
 
 
