@@ -382,22 +382,27 @@ def zoom(is_zoom_in):
             zoom_hor_slider.grid(row=2, column=1, columnspan=3)
         canvas.config(height=size_of_canvas_new[0], width=size_of_canvas_new[1])
     else:
-        moving_shift_X = 0
-        moving_shift_Y = 0
-        # we only put the sliders and activate the mouse movement function when image is zoomed-in
-        canvas.bind("<B1-Motion>", moving_mouse)
-        canvas.bind("<ButtonRelease-1>", mouse_release)
-        zoom_ver_slider = Scale(root, from_=0, to=-size_of_image_new[0] + size_of_canvas_new[0],
-                                length=canvas.winfo_height(), showvalue=0, command=moving_pictures)
-        zoom_ver_slider.grid(row=1, column=4)
-        zoom_hor_slider = Scale(root, from_=0, to=-size_of_image_new[1] + size_of_canvas_new[1],
-                                length=canvas.winfo_width(), orient="horizontal", showvalue=0, command=moving_pictures)
-        zoom_hor_slider.grid(row=2, column=1, columnspan=3)
+        if size_of_canvas_new[0] > monitor_height - 100 or size_of_canvas_new[1] > monitor_width - 100:
+            moving_shift_X = 0
+            moving_shift_Y = 0
+            # we only put the sliders and activate the mouse movement function when image is zoomed-in
+            canvas.bind("<B1-Motion>", moving_mouse)
+            canvas.bind("<ButtonRelease-1>", mouse_release)
+            zoom_ver_slider = Scale(root, from_=0, to=-size_of_image_new[0] + size_of_canvas_new[0],
+                                    length=canvas.winfo_height(), showvalue=0, command=moving_pictures)
+            zoom_ver_slider.grid(row=1, column=4)
+            zoom_hor_slider = Scale(root, from_=0, to=-size_of_image_new[1] + size_of_canvas_new[1],
+                                    length=canvas.winfo_width(), orient="horizontal", showvalue=0, command=moving_pictures)
+            zoom_hor_slider.grid(row=2, column=1, columnspan=3)
 
     print(size_of_image_new[0], " ", size_of_image_new[1])
     image1_new = ImageTk.PhotoImage(image_for_canvas_new.resize((size_of_image_new[1], size_of_image_new[0])))
     actual_image = image1_new
-    canvas_image_to_move = canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, anchor=CENTER, image=image1_new)
+    if not lock_on.get():
+        canvas_image_to_move = canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, anchor=CENTER, image=image1_new)
+    else:
+        canvas_image_to_move = canvas.create_image(canvas.winfo_width()/2, canvas.winfo_height()/2, anchor=CENTER, image=image1_new)
+    #canvas_image_to_move = canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, anchor=CENTER, image=image1_new)
     canvas.grid(row=1, column=1, columnspan=3)
     print(canvas.bbox(canvas_image_to_move))
     print(canvas.winfo_height(), " ",  canvas.winfo_width())
