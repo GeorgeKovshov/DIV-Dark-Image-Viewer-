@@ -1,17 +1,33 @@
 import sys
 import tkinter
 from tkinter import *
+from tkinter import ttk
 from tkinter import filedialog
+from ttkthemes import ThemedTk
 from PIL import ImageTk, Image
 import time
 import os
+import viewer_style
 
-root = Tk()
+root = ThemedTk()
 root.title("Images")
+
+
+style = ttk.Style(root)
+style.theme_use("clam")
+viewer_style.my_style(style)
+
+style.configure(root, focuscolor="")
 root.configure(background="#121212")
+
 # root.configure(background="gray")
-options_frame = Frame(root, relief="raised", bd=5, background="#363636")
-settings_frame = Frame(root, relief="sunken", bd=1, background="#363636")
+
+#options_frame = Frame(root, relief="raised", bd=5, background="#363636")
+#settings_frame = Frame(root, relief="sunken", bd=1, background="#363636")
+
+options_frame = ttk.Frame(root, relief="raised")
+settings_frame = ttk.Frame(root, relief="sunken")
+
 options_frame.grid(row=3, column=2)
 settings_frame.grid(row=0, column=0, columnspan=4, sticky=W)
 Grid.rowconfigure(root, 0, weight=0)
@@ -315,9 +331,9 @@ def next_image(img_number):
         previous = current_image - 1
 
     # Remapping the buttons to new images
-    button_next = Button(options_frame, text="Next ->", command=lambda: next_image(next))
+    button_next = ttk.Button(options_frame, text="Next ->", command=lambda: next_image(next))
     button_next.grid(row=2, column=2)
-    button_back = Button(options_frame, text="<- Back", command=lambda: next_image(previous))
+    button_back = ttk.Button(options_frame, text="<- Back", command=lambda: next_image(previous))
     button_back.grid(row=2, column=0)
 
 
@@ -374,11 +390,11 @@ def zoom(is_zoom_in):
             # we only put the sliders and activate the mouse movement function when image is zoomed-in
             canvas.bind("<B1-Motion>", moving_mouse)
             canvas.bind("<ButtonRelease-1>", mouse_release)
-            zoom_ver_slider = Scale(root, from_=0, to=-size_of_image_new[0] + size_of_canvas_new[0],
-                                    length=size_of_canvas_new[0], showvalue=0, command=moving_pictures)
+            zoom_ver_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[0] + size_of_canvas_new[0],
+                                    length=size_of_canvas_new[0], orient="vertical", command=moving_pictures)
             zoom_ver_slider.grid(row=1, column=4)
-            zoom_hor_slider = Scale(root, from_=0, to=-size_of_image_new[1] + size_of_canvas_new[1],
-                                    length=size_of_canvas_new[1], orient="horizontal", showvalue=0, command=moving_pictures)
+            zoom_hor_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[1] + size_of_canvas_new[1],
+                                    length=size_of_canvas_new[1], orient="horizontal", command=moving_pictures) #showvalue=0
             zoom_hor_slider.grid(row=2, column=1, columnspan=3)
         canvas.config(height=size_of_canvas_new[0], width=size_of_canvas_new[1])
     else:
@@ -388,11 +404,11 @@ def zoom(is_zoom_in):
             # we only put the sliders and activate the mouse movement function when image is zoomed-in
             canvas.bind("<B1-Motion>", moving_mouse)
             canvas.bind("<ButtonRelease-1>", mouse_release)
-            zoom_ver_slider = Scale(root, from_=0, to=-size_of_image_new[0] + size_of_canvas_new[0],
-                                    length=canvas.winfo_height(), showvalue=0, command=moving_pictures)
+            zoom_ver_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[0] + size_of_canvas_new[0],
+                                    length=canvas.winfo_height(), orient="vertical", command=moving_pictures)
             zoom_ver_slider.grid(row=1, column=4)
-            zoom_hor_slider = Scale(root, from_=0, to=-size_of_image_new[1] + size_of_canvas_new[1],
-                                    length=canvas.winfo_width(), orient="horizontal", showvalue=0, command=moving_pictures)
+            zoom_hor_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[1] + size_of_canvas_new[1],
+                                    length=canvas.winfo_width(), orient="horizontal", command=moving_pictures)
             zoom_hor_slider.grid(row=2, column=1, columnspan=3)
 
     print(size_of_image_new[0], " ", size_of_image_new[1])
@@ -463,41 +479,48 @@ def show_gif():
 # Buttons when loading the program. If only one image in folder, the buttons are Disabled
 amount_of_images = 2  #len(images)
 if amount_of_images > 1:
-    button_next = Button(options_frame, text="Next ->", command=lambda: next_image(1))
+    button_next = ttk.Button(options_frame, text="Next ->", command=lambda: next_image(1))
     button_next.grid(row=2, column=2)
-    button_back = Button(options_frame, text="<- Back", command=lambda: next_image(len(images) - 1))
+    button_back = ttk.Button(options_frame, text="<- Back", command=lambda: next_image(len(images) - 1))
     button_back.grid(row=2, column=0)
 else:
-    button_next = Button(options_frame, text="Next ->", command=DISABLED)
+    button_next = ttk.Button(options_frame, text="Next ->", command=DISABLED)
     button_next.grid(row=2, column=2)
-    button_back = Button(options_frame, text="<- Back", command=DISABLED)
+    button_back = ttk.Button(options_frame, text="<- Back", command=DISABLED)
     button_back.grid(row=2, column=0)
 
-button_open = Button(settings_frame, text="open image", command=open_image)
+button_open = ttk.Button(settings_frame, text="open image", command=open_image)
 button_open.grid(row=0, column=0)
 
 
 
 
 
-button_zoom = Button(options_frame, text="Zoom In", command=lambda: zoom(True))
+button_zoom = ttk.Button(options_frame, text="Zoom In", command=lambda: zoom(True))
 button_zoom.grid(row=1, column=1)
 
-button_zoom = Button(options_frame, text="Zoom Out", command=lambda: zoom(False))
+button_zoom = ttk.Button(options_frame, text="Zoom Out", command=lambda: zoom(False))
 button_zoom.grid(row=2, column=1)
 
-button_rotate_right = Button(options_frame, text="Rotate right", command=lambda: rotate_image(True))
+button_rotate_right = ttk.Button(options_frame, text="Rotate right", command=lambda: rotate_image(True))
 button_rotate_right.grid(row=1, column=2)
 
-button_rotate_left = Button(options_frame, text="Rotate left", command=lambda: rotate_image(False))
+button_rotate_left = ttk.Button(options_frame, text="Rotate left", command=lambda: rotate_image(False))
 button_rotate_left.grid(row=1, column=0)
 
-checkbox_Lock = Checkbutton(settings_frame, text="Lock window size", variable=lock_on, onvalue=True, offvalue=False)
-checkbox_Lock.deselect()
-checkbox_Lock.grid(row=0, column=1)
+checkbox_Lock = ttk.Checkbutton(settings_frame, text=" Lock window", variable=lock_on, onvalue=True, offvalue=False)
+#checkbox_Lock.deselect()
+checkbox_Lock.grid(row=0, column=1, ipadx=2, ipady=3)
 
-zoom_hor_slider = Scale(root, from_=0, to=10, length=1, command=moving_pictures)
-zoom_ver_slider = Scale(root, from_=0, to=10, length=1, command=moving_pictures)
+img_unticked_box = ImageTk.PhotoImage(Image.open("uncheck2.png"))
+img_ticked_box = ImageTk.PhotoImage(Image.open("check2.png"))
+viewer_style.change_checkbutton(style, img_ticked_box, img_unticked_box)
+
+
+
+
+zoom_hor_slider = ttk.Scale(root, from_=0, to=10, length=1, command=moving_pictures)
+zoom_ver_slider = ttk.Scale(root, from_=0, to=10, length=1, command=moving_pictures)
 
 print(monitor_height, monitor_width)
 
