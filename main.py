@@ -10,8 +10,8 @@ root = Tk()
 root.title("Images")
 root.configure(background="#121212")
 # root.configure(background="gray")
-options_frame = Frame(root, relief="raised", bd=5)
-settings_frame = Frame(root, relief="sunken", bd=1)
+options_frame = Frame(root, relief="raised", bd=5, background="#363636")
+settings_frame = Frame(root, relief="sunken", bd=1, background="#363636")
 options_frame.grid(row=3, column=2)
 settings_frame.grid(row=0, column=0, columnspan=4, sticky=W)
 Grid.rowconfigure(root, 0, weight=0)
@@ -473,8 +473,8 @@ else:
     button_back = Button(options_frame, text="<- Back", command=DISABLED)
     button_back.grid(row=2, column=0)
 
-button_open = Button(options_frame, text="open image", command=open_image)
-button_open.grid(row=2, column=1)
+button_open = Button(settings_frame, text="open image", command=open_image)
+button_open.grid(row=0, column=0)
 
 
 
@@ -484,17 +484,17 @@ button_zoom = Button(options_frame, text="Zoom In", command=lambda: zoom(True))
 button_zoom.grid(row=1, column=1)
 
 button_zoom = Button(options_frame, text="Zoom Out", command=lambda: zoom(False))
-button_zoom.grid(row=3, column=1)
+button_zoom.grid(row=2, column=1)
 
 button_rotate_right = Button(options_frame, text="Rotate right", command=lambda: rotate_image(True))
-button_rotate_right.grid(row=1, column=0)
+button_rotate_right.grid(row=1, column=2)
 
 button_rotate_left = Button(options_frame, text="Rotate left", command=lambda: rotate_image(False))
-button_rotate_left.grid(row=1, column=2)
+button_rotate_left.grid(row=1, column=0)
 
 checkbox_Lock = Checkbutton(settings_frame, text="Lock window size", variable=lock_on, onvalue=True, offvalue=False)
 checkbox_Lock.deselect()
-checkbox_Lock.grid(row=4, column=1)
+checkbox_Lock.grid(row=0, column=1)
 
 zoom_hor_slider = Scale(root, from_=0, to=10, length=1, command=moving_pictures)
 zoom_ver_slider = Scale(root, from_=0, to=10, length=1, command=moving_pictures)
