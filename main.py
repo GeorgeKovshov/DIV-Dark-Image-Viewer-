@@ -17,16 +17,16 @@ root = ThemedTk()
 def move_window(event):
     root.geometry('+{0}+{1}'.format(event.x_root + 100, event.y_root))
 
-root.overrideredirect(True) # turns off title bar, geometry
-root.geometry('400x100+200+200') # set new geometry
-root.update_idletasks()
+#root.overrideredirect(True) # turns off title bar, geometry
+#root.geometry('400x100+200+200') # set new geometry
+#root.update_idletasks()
 
 # make a frame for the title bar
 #title_bar = ttk.Frame(root, relief='raised')
 
 # put a close button on the title bar
-close_button = ttk.Button(root, text='X', width=2, command=root.destroy)
-close_button.grid(row=0, column = 3, sticky="ne")
+#close_button = ttk.Button(root, text='X', width=2, command=root.destroy)
+#close_button.grid(row=0, column = 3, sticky="ne")
 
 # a canvas for the main area of the window
 #window = Canvas(root, bg='black')
@@ -35,7 +35,7 @@ close_button.grid(row=0, column = 3, sticky="ne")
 #title_bar.pack(expand=1, fill=X)
 #close_button.pack(side=RIGHT)
 #window.grid(row=0, column=0, fill=BOTH)
-root.bind('<B1-Motion>', move_window)
+#root.bind('<B1-Motion>', move_window)
 
 
 
