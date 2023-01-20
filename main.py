@@ -9,8 +9,41 @@ import time
 import os
 import viewer_style
 
+
+
+
 root = ThemedTk()
-root.title("Images")
+
+def move_window(event):
+    root.geometry('+{0}+{1}'.format(event.x_root + 100, event.y_root))
+
+root.overrideredirect(True) # turns off title bar, geometry
+root.geometry('400x100+200+200') # set new geometry
+root.update_idletasks()
+
+# make a frame for the title bar
+#title_bar = ttk.Frame(root, relief='raised')
+
+# put a close button on the title bar
+close_button = ttk.Button(root, text='X', width=2, command=root.destroy)
+close_button.grid(row=0, column = 3, sticky="ne")
+
+# a canvas for the main area of the window
+#window = Canvas(root, bg='black')
+
+# pack the widgets
+#title_bar.pack(expand=1, fill=X)
+#close_button.pack(side=RIGHT)
+#window.grid(row=0, column=0, fill=BOTH)
+root.bind('<B1-Motion>', move_window)
+
+
+
+
+
+
+
+#root.title("Images")
 
 
 style = ttk.Style(root)
@@ -25,11 +58,14 @@ root.configure(background="#121212")
 #options_frame = Frame(root, relief="raised", bd=5, background="#363636")
 #settings_frame = Frame(root, relief="sunken", bd=1, background="#363636")
 
-options_frame = ttk.Frame(root, relief="raised")
-settings_frame = ttk.Frame(root, relief="sunken")
+options_frame = ttk.Frame(root, relief="raised", padding=[10, 10, 10, 10])
+settings_frame = ttk.Frame(root, relief="sunken", padding=[10, 10, 10, 10])
 
 options_frame.grid(row=3, column=2)
 settings_frame.grid(row=0, column=0, columnspan=4, sticky=W)
+# bind title bar motion to the move window function
+
+
 Grid.rowconfigure(root, 0, weight=0)
 Grid.rowconfigure(root, 1, weight=1)
 Grid.columnconfigure(root, 0, weight=1000)
@@ -277,7 +313,7 @@ def show_image(img_number):
 
 # Initializing canvas for images to be put into
 canvas = tkinter.Canvas(root, height=1, width=1)
-canvas.configure(background="#121212")
+canvas.configure(background="#121212", highlightbackground="#D9DDDC", highlightthickness=0)
 canvas_image_to_move = canvas.create_image(1, 1)
 canvas.grid(row=1, column=1, columnspan=3)
 # Loading the first image
@@ -312,8 +348,8 @@ def next_image(img_number):
     zoom_hor_slider.grid_forget()
 
     # Showing the current image index
-    label2 = Label(root, text=current_image)
-    label2.grid(row=4, column=1)
+    #label2 = Label(root, text=current_image)
+    #label2.grid(row=4, column=1)
 
 
     # Replacing the old image with a new one
@@ -480,37 +516,42 @@ def show_gif():
 amount_of_images = 2  #len(images)
 if amount_of_images > 1:
     button_next = ttk.Button(options_frame, text="Next ->", command=lambda: next_image(1))
-    button_next.grid(row=2, column=2)
+    button_next.grid(row=2, column=2, padx=5)
     button_back = ttk.Button(options_frame, text="<- Back", command=lambda: next_image(len(images) - 1))
-    button_back.grid(row=2, column=0)
+    button_back.grid(row=2, column=0, padx=5)
 else:
     button_next = ttk.Button(options_frame, text="Next ->", command=DISABLED)
-    button_next.grid(row=2, column=2)
+    button_next.grid(row=2, column=2,padx=5)
     button_back = ttk.Button(options_frame, text="<- Back", command=DISABLED)
-    button_back.grid(row=2, column=0)
+    button_back.grid(row=2, column=0, padx=5)
 
-button_open = ttk.Button(settings_frame, text="open image", command=open_image)
-button_open.grid(row=0, column=0)
+button_open = ttk.Button(settings_frame, text=" Open", width=5, command=open_image)
+button_open.grid(row=0, column=0, ipady=3, padx=5)
 
 
 
 
 
 button_zoom = ttk.Button(options_frame, text="Zoom In", command=lambda: zoom(True))
-button_zoom.grid(row=1, column=1)
+button_zoom.grid(row=1, column=1, padx=5, pady=5)
 
 button_zoom = ttk.Button(options_frame, text="Zoom Out", command=lambda: zoom(False))
-button_zoom.grid(row=2, column=1)
+button_zoom.grid(row=2, column=1, padx=5)
 
 button_rotate_right = ttk.Button(options_frame, text="Rotate right", command=lambda: rotate_image(True))
 button_rotate_right.grid(row=1, column=2)
 
 button_rotate_left = ttk.Button(options_frame, text="Rotate left", command=lambda: rotate_image(False))
-button_rotate_left.grid(row=1, column=0)
+button_rotate_left.grid(row=1, column=0, padx=5)
 
-checkbox_Lock = ttk.Checkbutton(settings_frame, text=" Lock window", variable=lock_on, onvalue=True, offvalue=False)
+
+checkbox_frame = ttk.Frame(settings_frame, borderwidth=5, relief="sunken", style="check.TFrame")
+checkbox_frame.grid(row=0, column=1,)
+checkbox_Lock = ttk.Checkbutton(checkbox_frame, text=" Lock window", variable=lock_on, onvalue=True, offvalue=False)
 #checkbox_Lock.deselect()
 checkbox_Lock.grid(row=0, column=1, ipadx=2, ipady=3)
+checkbox_Lock.bind('<Enter>', lambda event, a = 'check': viewer_style.change_style(event, a, style))
+checkbox_Lock.bind('<Leave>', lambda event, a = 'check': viewer_style.change_style_back(event, a, style))
 
 img_unticked_box = ImageTk.PhotoImage(Image.open("uncheck2.png"))
 img_ticked_box = ImageTk.PhotoImage(Image.open("check2.png"))
