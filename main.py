@@ -8,25 +8,24 @@ from PIL import ImageTk, Image
 import time
 import os
 import viewer_style
+import custom_titlebar
 
 
 
 
 root = ThemedTk()
 
-def move_window(event):
-    root.geometry('+{0}+{1}'.format(event.x_root + 100, event.y_root))
+#def move_window(event):
+#    root.geometry('+{0}+{1}'.format(event.x_root + 100, event.y_root))
 
-#root.overrideredirect(True) # turns off title bar, geometry
-#root.geometry('400x100+200+200') # set new geometry
+root.overrideredirect(True) # turns off title bar, geometry
+#root.geometry('+400+50') # set new geometry
 #root.update_idletasks()
 
 # make a frame for the title bar
 #title_bar = ttk.Frame(root, relief='raised')
 
-# put a close button on the title bar
-#close_button = ttk.Button(root, text='X', width=2, command=root.destroy)
-#close_button.grid(row=0, column = 3, sticky="ne")
+
 
 # a canvas for the main area of the window
 #window = Canvas(root, bg='black')
@@ -43,7 +42,7 @@ def move_window(event):
 
 
 
-#root.title("Images")
+root.title("Simple Image Viewer")
 
 
 style = ttk.Style(root)
@@ -60,14 +59,26 @@ root.configure(background="#121212")
 
 options_frame = ttk.Frame(root, relief="raised", padding=[10, 10, 10, 10])
 settings_frame = ttk.Frame(root, relief="sunken", padding=[10, 10, 10, 10])
+closing_frame = ttk.Frame(root, relief="sunken", padding=[15, 10, 10, 10])
 
-options_frame.grid(row=3, column=2)
+options_frame.grid(row=5, column=2, sticky="e")
 settings_frame.grid(row=0, column=0, columnspan=4, sticky=W)
+closing_frame.grid(row=0, column = 3, columnspan=3, sticky="ne")
 # bind title bar motion to the move window function
+
+
+# put a close button on the title bar
+close_button = ttk.Button(closing_frame, text='X', width=3, command=root.destroy)
+close_button.grid(row=0, column=1, padx=5, ipady=3)
 
 
 Grid.rowconfigure(root, 0, weight=0)
 Grid.rowconfigure(root, 1, weight=1)
+Grid.rowconfigure(root, 2, weight=0)
+#Grid.rowconfigure(root, 3, weight=1)
+#Grid.rowconfigure(root, 4, weight=0)
+#Grid.rowconfigure(root, 5, weight=0)
+
 Grid.columnconfigure(root, 0, weight=1000)
 Grid.columnconfigure(root, 1, weight=1)
 Grid.columnconfigure(root, 2, weight=1)
@@ -303,7 +314,7 @@ def show_image(img_number):
         canvas.create_image(canvas.winfo_width()/2, canvas.winfo_height()/2, image=image1_new)
 
 
-    canvas.grid(row=1, column=1, columnspan=3)
+    canvas.grid(row=1, column=1, columnspan=4)
 
 
 
@@ -315,7 +326,7 @@ def show_image(img_number):
 canvas = tkinter.Canvas(root, height=1, width=1)
 canvas.configure(background="#121212", highlightbackground="#D9DDDC", highlightthickness=0)
 canvas_image_to_move = canvas.create_image(1, 1)
-canvas.grid(row=1, column=1, columnspan=3)
+#canvas.grid(row=1, column=1, columnspan=4)
 # Loading the first image
 if images:
     show_image(current_image)
@@ -428,13 +439,14 @@ def zoom(is_zoom_in):
             canvas.bind("<ButtonRelease-1>", mouse_release)
             zoom_ver_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[0] + size_of_canvas_new[0],
                                     length=size_of_canvas_new[0], orient="vertical", command=moving_pictures)
-            zoom_ver_slider.grid(row=1, column=4)
+            zoom_ver_slider.grid(row=1, column=5)
             zoom_hor_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[1] + size_of_canvas_new[1],
                                     length=size_of_canvas_new[1], orient="horizontal", command=moving_pictures) #showvalue=0
-            zoom_hor_slider.grid(row=2, column=1, columnspan=3)
+            zoom_hor_slider.grid(row=2, column=1, columnspan=4)
         canvas.config(height=size_of_canvas_new[0], width=size_of_canvas_new[1])
     else:
-        if size_of_canvas_new[0] > monitor_height - 100 or size_of_canvas_new[1] > monitor_width - 100:
+        if canvas.winfo_width() < size_of_image_new[1] or canvas.winfo_height()< size_of_image_new[0]:
+        #if size_of_canvas_new[0] > monitor_height - 100 or size_of_canvas_new[1] > monitor_width - 100:
             moving_shift_X = 0
             moving_shift_Y = 0
             # we only put the sliders and activate the mouse movement function when image is zoomed-in
@@ -442,10 +454,10 @@ def zoom(is_zoom_in):
             canvas.bind("<ButtonRelease-1>", mouse_release)
             zoom_ver_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[0] + size_of_canvas_new[0],
                                     length=canvas.winfo_height(), orient="vertical", command=moving_pictures)
-            zoom_ver_slider.grid(row=1, column=4)
+            zoom_ver_slider.grid(row=1, column=5)
             zoom_hor_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[1] + size_of_canvas_new[1],
                                     length=canvas.winfo_width(), orient="horizontal", command=moving_pictures)
-            zoom_hor_slider.grid(row=2, column=1, columnspan=3)
+            zoom_hor_slider.grid(row=2, column=1, columnspan=4, sticky="n")
 
     print(size_of_image_new[0], " ", size_of_image_new[1])
     image1_new = ImageTk.PhotoImage(image_for_canvas_new.resize((size_of_image_new[1], size_of_image_new[0])))
@@ -455,7 +467,7 @@ def zoom(is_zoom_in):
     else:
         canvas_image_to_move = canvas.create_image(canvas.winfo_width()/2, canvas.winfo_height()/2, anchor=CENTER, image=image1_new)
     #canvas_image_to_move = canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, anchor=CENTER, image=image1_new)
-    canvas.grid(row=1, column=1, columnspan=3)
+    canvas.grid(row=1, column=1, columnspan=4)
     print(canvas.bbox(canvas_image_to_move))
     print(canvas.winfo_height(), " ",  canvas.winfo_width())
     #zoom_slider = Scale(root, from_=0, to=400, length=canvas.winfo_height())
@@ -563,7 +575,81 @@ viewer_style.change_checkbutton(style, img_ticked_box, img_unticked_box)
 zoom_hor_slider = ttk.Scale(root, from_=0, to=10, length=1, command=moving_pictures)
 zoom_ver_slider = ttk.Scale(root, from_=0, to=10, length=1, command=moving_pictures)
 
+
+# put a close button on the title bar
+
+expand_button = ttk.Button(settings_frame, text=' Fullscreen ', width=9, command=lambda a=root: custom_titlebar.maximize_me(a))
+minimize_button = ttk.Button(closing_frame, text=' _ ', width=3, command=lambda a=root: custom_titlebar.minimize_me(root))
+
+expand_button.grid(row=0, column=3, ipady=3, padx=5)
+minimize_button.grid(row=0, column=0, ipady=3)
+
+settings_frame.bind('<Button-1>',lambda event, a=root, b=settings_frame: custom_titlebar.get_pos(event, a, b))  # so you can drag the window from the title bar
+closing_frame.bind('<Button-1>',lambda event, a=root, b=closing_frame: custom_titlebar.get_pos(event, a, b))  # so you can drag the window from the title bar
+
+root.bind("<FocusIn>", lambda event, a=root: custom_titlebar.deminimize(event, a))  # to view the window by clicking on the window icon on the taskbar
+root.after(10, lambda: custom_titlebar.set_appwindow(root))  # to see the icon on the task bar
+
+
 print(monitor_height, monitor_width)
+
+
+LGRAY = '#3e4042'  # button color effects in the title bar (Hex color)
+DGRAY = '#25292e'  # window background color               (Hex color)
+RGRAY = '#10121f'  # title bar color                       (Hex color)
+resizex_widget = Frame(root, bg=DGRAY, cursor='sb_h_double_arrow')
+resizex_widget.grid(row=0, column=1, rowspan=10, columnspan=10, ipadx=3, ipady=4, padx=3, pady=5)
+
+
+def resizex(event):
+    xwin = root.winfo_x()
+    difference = (event.x_root - xwin) - root.winfo_width()
+
+    if root.winfo_width() > 150:  # 150 is the minimum width for the window
+        try:
+            root.geometry(f"{root.winfo_width() + difference}x{root.winfo_height()}")
+        except:
+            pass
+    else:
+        if difference > 0:  # so the window can't be too small (150x150)
+            try:
+                root.geometry(f"{root.winfo_width() + difference}x{root.winfo_height()}")
+            except:
+                pass
+
+    resizex_widget.config(bg=DGRAY)
+
+
+resizex_widget.bind("<B1-Motion>", resizex)
+
+# resize the window height
+resizey_widget = Frame(root, bg=DGRAY, cursor='sb_v_double_arrow')
+resizey_widget.grid(row=0, column=0, columnspan=10, ipadx=3, ipady=4, padx=3, pady=5)
+
+
+def resizey(event):
+    ywin = root.winfo_y()
+    difference = (event.y_root - ywin) - root.winfo_height()
+
+    if root.winfo_height() > 150:  # 150 is the minimum height for the window
+        try:
+            root.geometry(f"{root.winfo_width()}x{root.winfo_height() + difference}")
+        except:
+            pass
+    else:
+        if difference > 0:  # so the window can't be too small (150x150)
+            try:
+                root.geometry(f"{root.winfo_width()}x{root.winfo_height() + difference}")
+            except:
+                pass
+
+    resizex_widget.config(bg=DGRAY)
+
+
+resizey_widget.bind("<B1-Motion>", resizey)
+
+
+
 
 
 root.mainloop()
