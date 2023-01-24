@@ -597,56 +597,159 @@ print(monitor_height, monitor_width)
 LGRAY = '#3e4042'  # button color effects in the title bar (Hex color)
 DGRAY = '#25292e'  # window background color               (Hex color)
 RGRAY = '#10121f'  # title bar color                       (Hex color)
-resizex_widget = Frame(root, bg=DGRAY, cursor='sb_h_double_arrow')
-resizex_widget.grid(row=0, column=1, rowspan=10, columnspan=10, ipadx=3, ipady=4, padx=3, pady=5)
+resize_widget = ttk.Frame(root, cursor='sb_h_double_arrow')
+#resize_widget.grid(row=0, column=0, rowspan=10, columnspan=10, ipadx=3, ipady=4, padx=3, pady=5)
+
+resizing_image = ImageTk.PhotoImage(Image.open("menu.png"))
+
+
+
+def resize_window(event):
+    ywin = root.winfo_y()
+    difference_y = (event.y_root - ywin)
+    xwin = root.winfo_x()
+    difference_x = (event.x_root - xwin)
+    """PUT THOSE THREE INTO A SEPARATE FUNCTION: bind mouse 1 press and mouse 1 release to those global variables"""
+    label = Label(options_frame, image=resizing_image, borderwidth=0)
+    label.grid(row=0, column=0, rowspan=10, columnspan=10, padx=0, pady=0)
+    options_frame.config(padding = [3, 3, 3, 3])
+    if root.winfo_height() > 150:  # 150 is the minimum height for the window
+        try:
+            #root.geometry(f"{root.winfo_width()}x{difference_y}")
+            root.geometry(f"{difference_x}x{difference_y}")
+        except:
+            pass
+    else:
+        if difference_y > 0:  # so the window can't be too small (150x150)
+            try:
+                root.geometry(f"{difference_x}x{difference_y}")
+            except:
+                pass
+
+
+    """
+    if root.winfo_width() > 150:  # 150 is the minimum width for the window
+        try:
+            root.geometry(f"{difference_x}x{root.winfo_height()}")
+            
+            options_frame.grid_forget()
+            settings_frame.grid_forget()
+            closing_frame.grid_forget()
+
+            options_frame.grid(row=5, column=2, sticky="e")
+            settings_frame.grid(row=0, column=0, columnspan=4, sticky=W)
+            closing_frame.grid(row=0, column=3, columnspan=3, sticky="ne")
+            
+
+            # label = Label(options_frame, image=resizing_image)
+            # label.grid(row=0, column=0, rowspan=10, columnspan=10, ipadx=0, ipady=0)
+
+
+
+        except:
+            pass
+    else:
+        if difference_x > 0:  # so the window can't be too small (150x150)
+            try:
+                root.geometry(f"{difference_x}x{root.winfo_height()}")
+                
+                options_frame.grid_forget()
+                settings_frame.grid_forget()
+                closing_frame.grid_forget()
+
+                options_frame.grid(row=5, column=2, sticky="e")
+                settings_frame.grid(row=0, column=0, columnspan=4, sticky=W)
+                closing_frame.grid(row=0, column=3, columnspan=3, sticky="ne")
+                 
+
+
+
+            except:
+                pass
+        """
+
+resize_widget.bind("<B1-Motion>", resize_window)
+
+# resize the window height
+#resize_widget = ttk.Frame(root, cursor='sb_v_double_arrow')
+resize_widget.grid(row=5, column=4, columnspan=10, ipadx=3, ipady=3, padx=2, pady=2, sticky="se")
 
 
 def resizex(event):
+    global root
     xwin = root.winfo_x()
-    difference = (event.x_root - xwin) - root.winfo_width()
+    difference = (event.x_root - xwin)
 
     if root.winfo_width() > 150:  # 150 is the minimum width for the window
         try:
-            root.geometry(f"{root.winfo_width() + difference}x{root.winfo_height()}")
+            root.geometry(f"{difference}x{root.winfo_height()}")
+            """
+            options_frame.grid_forget()
+            settings_frame.grid_forget()
+            closing_frame.grid_forget()
+
+            options_frame.grid(row=5, column=2, sticky="e")
+            settings_frame.grid(row=0, column=0, columnspan=4, sticky=W)
+            closing_frame.grid(row=0, column=3, columnspan=3, sticky="ne")
+            """
+
+            label = Label(options_frame, image=resizing_image, borderwidth=0)
+            label.grid(row=0, column=0, rowspan=10, columnspan=10, ipadx=0, ipady=0)
+
+
+
         except:
             pass
     else:
         if difference > 0:  # so the window can't be too small (150x150)
             try:
-                root.geometry(f"{root.winfo_width() + difference}x{root.winfo_height()}")
+                root.geometry(f"{difference}x{root.winfo_height()}")
+                """
+                options_frame.grid_forget()
+                settings_frame.grid_forget()
+                closing_frame.grid_forget()
+
+                options_frame.grid(row=5, column=2, sticky="e")
+                settings_frame.grid(row=0, column=0, columnspan=4, sticky=W)
+                closing_frame.grid(row=0, column=3, columnspan=3, sticky="ne")
+                 """
+
+
+
             except:
                 pass
 
-    resizex_widget.config(bg=DGRAY)
 
 
-resizex_widget.bind("<B1-Motion>", resizex)
+
+#root.bind("<B1-Motion>", resizex)
+#resizex_widget.bind("<B1-Motion>", resizex)
 
 # resize the window height
-resizey_widget = Frame(root, bg=DGRAY, cursor='sb_v_double_arrow')
-resizey_widget.grid(row=0, column=0, columnspan=10, ipadx=3, ipady=4, padx=3, pady=5)
+#resizey_widget = ttk.Frame(root, cursor='sb_v_double_arrow')
+#resizey_widget.grid(row=0, column=0, columnspan=10, ipadx=3, ipady=4, padx=3, pady=5)
 
 
-def resizey(event):
+def resizey2(event):
     ywin = root.winfo_y()
-    difference = (event.y_root - ywin) - root.winfo_height()
+    difference = (event.y_root - ywin)
 
     if root.winfo_height() > 150:  # 150 is the minimum height for the window
         try:
-            root.geometry(f"{root.winfo_width()}x{root.winfo_height() + difference}")
+            root.geometry(f"{root.winfo_width()}x{difference}")
         except:
             pass
     else:
         if difference > 0:  # so the window can't be too small (150x150)
             try:
-                root.geometry(f"{root.winfo_width()}x{root.winfo_height() + difference}")
+                root.geometry(f"{root.winfo_width()}x{difference}")
             except:
                 pass
 
-    resizex_widget.config(bg=DGRAY)
 
 
-resizey_widget.bind("<B1-Motion>", resizey)
+
+#resizey_widget.bind("<B1-Motion>", resizey)
 
 
 
