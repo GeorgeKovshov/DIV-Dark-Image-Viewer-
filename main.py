@@ -544,11 +544,11 @@ button_open.grid(row=0, column=0, ipady=3, padx=5)
 
 
 
-button_zoom = ttk.Button(options_frame, text="Zoom In", command=lambda: zoom(True))
-button_zoom.grid(row=1, column=1, padx=5, pady=5)
+button_zoom_in = ttk.Button(options_frame, text="Zoom In", command=lambda: zoom(True))
+button_zoom_in.grid(row=1, column=1, padx=5, pady=5)
 
-button_zoom = ttk.Button(options_frame, text="Zoom Out", command=lambda: zoom(False))
-button_zoom.grid(row=2, column=1, padx=5)
+button_zoom_out = ttk.Button(options_frame, text="Zoom Out", command=lambda: zoom(False))
+button_zoom_out.grid(row=2, column=1, padx=5)
 
 button_rotate_right = ttk.Button(options_frame, text="Rotate right", command=lambda: rotate_image(True))
 button_rotate_right.grid(row=1, column=2)
@@ -597,32 +597,104 @@ print(monitor_height, monitor_width)
 LGRAY = '#3e4042'  # button color effects in the title bar (Hex color)
 DGRAY = '#25292e'  # window background color               (Hex color)
 RGRAY = '#10121f'  # title bar color                       (Hex color)
-resize_widget = ttk.Frame(root, cursor='sb_h_double_arrow')
+resize_widget = ttk.Frame(root, cursor='sizing')
 #resize_widget.grid(row=0, column=0, rowspan=10, columnspan=10, ipadx=3, ipady=4, padx=3, pady=5)
 
 resizing_image = ImageTk.PhotoImage(Image.open("menu.png"))
+label = Label(options_frame, image=resizing_image, borderwidth=0)
+
+
+def resizing_press(event):
+    "function that hides the buttons and replaces them with an image when the window is being resized (when the mouse is clicked)"
+    global minimize_button
+    global button_zoom_in
+    global button_zoom_out
+    global button_rotate_left
+    global button_rotate_right
+    global button_next
+    global button_back
+    global resizing_image
+    global options_frame
+    global label
+    global resize_check
+
+    button_back.grid_forget()
+    button_next.grid_forget()
+    button_rotate_right.grid_forget()
+    button_rotate_left.grid_forget()
+    button_zoom_in.grid_forget()
+    button_zoom_out.grid_forget()
+    #minimize_button.grid_forget()
+
+    resize_check = True
+
+    #label = Label(options_frame, image=resizing_image, borderwidth=0)
+    label.grid(row=0, column=0, rowspan=10, columnspan=10, padx=0, pady=0)
+    options_frame.config(padding = [3, 3, 3, 3])
+
+def resizing_release(event):
+    "function that puts the buttons back (when the mouse is released)"
+    global expand_button
+    global minimize_button
+    global button_zoom_in
+    global button_zoom_out
+    global button_rotate_left
+    global button_rotate_right
+    global button_next
+    global button_back
+    global resizing_image
+    global options_frame
+    global label
+    global root
+    global resize_check
+
+    button_zoom_in.grid(row=1, column=1, padx=5, pady=5)
+    button_zoom_out.grid(row=2, column=1, padx=5)
+    button_rotate_right.grid(row=1, column=2)
+    button_rotate_left.grid(row=1, column=0, padx=5)
+    minimize_button.grid(row=0, column=0, ipady=3)
+    button_next.grid(row=2, column=2, padx=5)
+    button_back.grid(row=2, column=0, padx=5)
+
+    print("Fuck")
+    resizing_image = None
+    resize_check = False
+    options_frame.unbind("<Enter>")
+
+
+
+    #label = Label(options_frame, image=resizing_image, borderwidth=0)
+    label.grid_forget()
+    label.destroy()
+    options_frame.config(padding = [10, 10, 10, 10])
+    #root.update()
 
 
 
 def resize_window(event):
+    global label
+    global options_frame
+    global resizing_image
+    global root
+
     ywin = root.winfo_y()
     difference_y = (event.y_root - ywin)
     xwin = root.winfo_x()
     difference_x = (event.x_root - xwin)
-    """PUT THOSE THREE INTO A SEPARATE FUNCTION: bind mouse 1 press and mouse 1 release to those global variables"""
-    label = Label(options_frame, image=resizing_image, borderwidth=0)
-    label.grid(row=0, column=0, rowspan=10, columnspan=10, padx=0, pady=0)
-    options_frame.config(padding = [3, 3, 3, 3])
+
     if root.winfo_height() > 150:  # 150 is the minimum height for the window
         try:
             #root.geometry(f"{root.winfo_width()}x{difference_y}")
             root.geometry(f"{difference_x}x{difference_y}")
+            label = Label(options_frame, image=resizing_image, borderwidth=0)
+            label.grid(row=0, column=0, rowspan=10, columnspan=10, padx=0, pady=0)
         except:
             pass
     else:
         if difference_y > 0:  # so the window can't be too small (150x150)
             try:
                 root.geometry(f"{difference_x}x{difference_y}")
+
             except:
                 pass
 
@@ -668,7 +740,15 @@ def resize_window(event):
                 pass
         """
 
+resize_check = BooleanVar()
+
 resize_widget.bind("<B1-Motion>", resize_window)
+#resize_widget.bind("<ButtonRelease-1>", resizing_release)
+resize_widget.bind("<Button-1>", resizing_press)
+if resize_check:
+    options_frame.bind("<Enter>", resizing_release)
+    label.grid_forget()
+
 
 # resize the window height
 #resize_widget = ttk.Frame(root, cursor='sb_v_double_arrow')
