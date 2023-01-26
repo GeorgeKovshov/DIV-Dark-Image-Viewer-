@@ -626,11 +626,11 @@ def resizing_press(event):
     button_zoom_out.grid_forget()
     #minimize_button.grid_forget()
 
-    resize_check = True
+    #resize_check = True
 
     #label = Label(options_frame, image=resizing_image, borderwidth=0)
-    label.grid(row=0, column=0, rowspan=10, columnspan=10, padx=0, pady=0)
-    options_frame.config(padding = [3, 3, 3, 3])
+    #label.grid(row=0, column=0, rowspan=10, columnspan=10, padx=0, pady=0)
+    #options_frame.config(padding = [3, 3, 3, 3])
 
 def resizing_release(event):
     "function that puts the buttons back (when the mouse is released)"
@@ -646,36 +646,53 @@ def resizing_release(event):
     global options_frame
     global label
     global root
-    global resize_check
+    #global resize_check
 
+    options_frame.destroy()
+    button_zoom_in.destroy()
+    button_zoom_out.destroy()
+    button_rotate_right.destroy()
+    button_rotate_left.destroy()
+    button_next.destroy()
+    button_back.destroy()
+
+    options_frame = ttk.Frame(root, relief="raised", padding=[10, 10, 10, 10])
+    options_frame.grid(row=5, column=2, sticky="e")
+    button_zoom_in = ttk.Button(options_frame, text="Zoom In", command=lambda: zoom(True))
+    button_zoom_out = ttk.Button(options_frame, text="Zoom Out", command=lambda: zoom(False))
+    button_rotate_right = ttk.Button(options_frame, text="Rotate right", command=lambda: rotate_image(True))
+    button_rotate_left = ttk.Button(options_frame, text="Rotate left", command=lambda: rotate_image(False))
     button_zoom_in.grid(row=1, column=1, padx=5, pady=5)
     button_zoom_out.grid(row=2, column=1, padx=5)
     button_rotate_right.grid(row=1, column=2)
     button_rotate_left.grid(row=1, column=0, padx=5)
-    minimize_button.grid(row=0, column=0, ipady=3)
-    button_next.grid(row=2, column=2, padx=5)
-    button_back.grid(row=2, column=0, padx=5)
+    button_next = ttk.Button(options_frame, text="Next ->", command=lambda: next_image(current_image + 1))
+    button_next.grid(row=2, column=2)
+    button_back = ttk.Button(options_frame, text="<- Back", command=lambda: next_image(current_image - 1))
+    button_back.grid(row=2, column=0)
+    print("fuck")
 
-    print("Fuck")
-    resizing_image = None
-    resize_check = False
-    options_frame.unbind("<Enter>")
 
 
 
     #label = Label(options_frame, image=resizing_image, borderwidth=0)
-    label.grid_forget()
-    label.destroy()
-    options_frame.config(padding = [10, 10, 10, 10])
+    #label.grid_forget()
+    #label.destroy()
+    #options_frame.config(padding = [10, 10, 10, 10])
     #root.update()
 
 
 
 def resize_window(event):
-    global label
     global options_frame
     global resizing_image
     global root
+    global button_zoom_in
+    global button_zoom_out
+    global button_rotate_left
+    global button_rotate_right
+    global button_next
+    global button_back
 
     ywin = root.winfo_y()
     difference_y = (event.y_root - ywin)
@@ -686,150 +703,46 @@ def resize_window(event):
         try:
             #root.geometry(f"{root.winfo_width()}x{difference_y}")
             root.geometry(f"{difference_x}x{difference_y}")
-            label = Label(options_frame, image=resizing_image, borderwidth=0)
-            label.grid(row=0, column=0, rowspan=10, columnspan=10, padx=0, pady=0)
-        except:
-            pass
-    else:
-        if difference_y > 0:  # so the window can't be too small (150x150)
-            try:
-                root.geometry(f"{difference_x}x{difference_y}")
-
-            except:
-                pass
-
-
-    """
-    if root.winfo_width() > 150:  # 150 is the minimum width for the window
-        try:
-            root.geometry(f"{difference_x}x{root.winfo_height()}")
+            """
             
-            options_frame.grid_forget()
-            settings_frame.grid_forget()
-            closing_frame.grid_forget()
-
+            options_frame.destroy()
+            button_zoom_in.destroy()
+            button_zoom_out.destroy()
+            button_rotate_right.destroy()
+            button_rotate_left.destroy()
+            button_next.destroy()
+            button_back.destroy()
+            """
+            options_frame = ttk.Frame(root, relief="raised", padding=[10, 10, 10, 10])
             options_frame.grid(row=5, column=2, sticky="e")
-            settings_frame.grid(row=0, column=0, columnspan=4, sticky=W)
-            closing_frame.grid(row=0, column=3, columnspan=3, sticky="ne")
-            
-
-            # label = Label(options_frame, image=resizing_image)
-            # label.grid(row=0, column=0, rowspan=10, columnspan=10, ipadx=0, ipady=0)
-
-
+            button_zoom_in = ttk.Button(options_frame, text="Zoom In", command=lambda: zoom(True))
+            button_zoom_out = ttk.Button(options_frame, text="Zoom Out", command=lambda: zoom(False))
+            button_rotate_right = ttk.Button(options_frame, text="Rotate right", command=lambda: rotate_image(True))
+            button_rotate_left = ttk.Button(options_frame, text="Rotate left", command=lambda: rotate_image(False))
+            button_zoom_in.grid(row=1, column=1, padx=5, pady=5)
+            button_zoom_out.grid(row=2, column=1, padx=5)
+            button_rotate_right.grid(row=1, column=2)
+            button_rotate_left.grid(row=1, column=0, padx=5)
+            button_next = ttk.Button(options_frame, text="Next ->", command=lambda: next_image(current_image+1))
+            button_next.grid(row=2, column=2)
+            button_back = ttk.Button(options_frame, text="<- Back", command=lambda: next_image(current_image-1))
+            button_back.grid(row=2, column=0)
 
         except:
             pass
-    else:
-        if difference_x > 0:  # so the window can't be too small (150x150)
-            try:
-                root.geometry(f"{difference_x}x{root.winfo_height()}")
-                
-                options_frame.grid_forget()
-                settings_frame.grid_forget()
-                closing_frame.grid_forget()
-
-                options_frame.grid(row=5, column=2, sticky="e")
-                settings_frame.grid(row=0, column=0, columnspan=4, sticky=W)
-                closing_frame.grid(row=0, column=3, columnspan=3, sticky="ne")
-                 
 
 
 
-            except:
-                pass
-        """
 
-resize_check = BooleanVar()
+
 
 resize_widget.bind("<B1-Motion>", resize_window)
-#resize_widget.bind("<ButtonRelease-1>", resizing_release)
-resize_widget.bind("<Button-1>", resizing_press)
-if resize_check:
-    options_frame.bind("<Enter>", resizing_release)
-    label.grid_forget()
+resize_widget.bind("<ButtonRelease-1>", resizing_release)
 
 
-# resize the window height
-#resize_widget = ttk.Frame(root, cursor='sb_v_double_arrow')
 resize_widget.grid(row=5, column=4, columnspan=10, ipadx=3, ipady=3, padx=2, pady=2, sticky="se")
 
 
-def resizex(event):
-    global root
-    xwin = root.winfo_x()
-    difference = (event.x_root - xwin)
-
-    if root.winfo_width() > 150:  # 150 is the minimum width for the window
-        try:
-            root.geometry(f"{difference}x{root.winfo_height()}")
-            """
-            options_frame.grid_forget()
-            settings_frame.grid_forget()
-            closing_frame.grid_forget()
-
-            options_frame.grid(row=5, column=2, sticky="e")
-            settings_frame.grid(row=0, column=0, columnspan=4, sticky=W)
-            closing_frame.grid(row=0, column=3, columnspan=3, sticky="ne")
-            """
-
-            label = Label(options_frame, image=resizing_image, borderwidth=0)
-            label.grid(row=0, column=0, rowspan=10, columnspan=10, ipadx=0, ipady=0)
-
-
-
-        except:
-            pass
-    else:
-        if difference > 0:  # so the window can't be too small (150x150)
-            try:
-                root.geometry(f"{difference}x{root.winfo_height()}")
-                """
-                options_frame.grid_forget()
-                settings_frame.grid_forget()
-                closing_frame.grid_forget()
-
-                options_frame.grid(row=5, column=2, sticky="e")
-                settings_frame.grid(row=0, column=0, columnspan=4, sticky=W)
-                closing_frame.grid(row=0, column=3, columnspan=3, sticky="ne")
-                 """
-
-
-
-            except:
-                pass
-
-
-
-
-#root.bind("<B1-Motion>", resizex)
-#resizex_widget.bind("<B1-Motion>", resizex)
-
-# resize the window height
-#resizey_widget = ttk.Frame(root, cursor='sb_v_double_arrow')
-#resizey_widget.grid(row=0, column=0, columnspan=10, ipadx=3, ipady=4, padx=3, pady=5)
-
-
-def resizey2(event):
-    ywin = root.winfo_y()
-    difference = (event.y_root - ywin)
-
-    if root.winfo_height() > 150:  # 150 is the minimum height for the window
-        try:
-            root.geometry(f"{root.winfo_width()}x{difference}")
-        except:
-            pass
-    else:
-        if difference > 0:  # so the window can't be too small (150x150)
-            try:
-                root.geometry(f"{root.winfo_width()}x{difference}")
-            except:
-                pass
-
-
-
-
-#resizey_widget.bind("<B1-Motion>", resizey)
 
 
 
