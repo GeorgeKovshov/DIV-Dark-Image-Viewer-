@@ -338,6 +338,22 @@ actual_image
 
 
 
+def cycling_calculation():
+    "function that returns the next and previous image index from images list (cycles through them)"
+    global images
+    next_ind, previous_ind = 0, 0
+    length_of_image_list = len(images)
+    if current_image + 2 > length_of_image_list:
+        previous_ind = current_image - 1
+    elif current_image - 1 < 0:
+        next_ind = current_image + 1
+        previous_ind = length_of_image_list - 1
+    else:
+        next_ind = current_image + 1
+        previous_ind = current_image - 1
+    return next_ind, previous_ind
+
+
 def next_image(img_number):
     """function that loads and puts the picture with 'img_number' from 'images' list on screen"""
     global images
@@ -366,7 +382,8 @@ def next_image(img_number):
     # Replacing the old image with a new one
     show_image(current_image)
     # Making the image viewer cycle through images
-    next, previous = 0, 0
+    next_ind, previous_ind = cycling_calculation()
+    """
     length_of_image_list = len(images)
     if current_image + 2 > length_of_image_list:
         previous = current_image - 1
@@ -376,11 +393,11 @@ def next_image(img_number):
     else:
         next = current_image + 1
         previous = current_image - 1
-
+    """
     # Remapping the buttons to new images
-    button_next = ttk.Button(options_frame, text="Next ->", command=lambda: next_image(next))
+    button_next = ttk.Button(options_frame, text="Next ->", command=lambda: next_image(next_ind))
     button_next.grid(row=2, column=2)
-    button_back = ttk.Button(options_frame, text="<- Back", command=lambda: next_image(previous))
+    button_back = ttk.Button(options_frame, text="<- Back", command=lambda: next_image(previous_ind))
     button_back.grid(row=2, column=0)
 
 
@@ -594,14 +611,12 @@ root.after(10, lambda: custom_titlebar.set_appwindow(root))  # to see the icon o
 print(monitor_height, monitor_width)
 
 
-LGRAY = '#3e4042'  # button color effects in the title bar (Hex color)
-DGRAY = '#25292e'  # window background color               (Hex color)
-RGRAY = '#10121f'  # title bar color                       (Hex color)
 resize_widget = ttk.Frame(root, cursor='sizing')
-#resize_widget.grid(row=0, column=0, rowspan=10, columnspan=10, ipadx=3, ipady=4, padx=3, pady=5)
 
 resizing_image = ImageTk.PhotoImage(Image.open("menu.png"))
+resizing_image2 = ImageTk.PhotoImage(Image.open("close_menu.png"))
 label = Label(options_frame, image=resizing_image, borderwidth=0)
+label2 = Label(closing_frame, image=resizing_image2, borderwidth=0)
 
 
 def resizing_press(event):
@@ -614,27 +629,36 @@ def resizing_press(event):
     global button_next
     global button_back
     global resizing_image
+    global resizing_image2
     global options_frame
+    global closing_frame
+    global close_button
     global label
+    global label2
     global resize_check
 
-    button_back.grid_forget()
-    button_next.grid_forget()
-    button_rotate_right.grid_forget()
-    button_rotate_left.grid_forget()
-    button_zoom_in.grid_forget()
-    button_zoom_out.grid_forget()
-    #minimize_button.grid_forget()
+    #restoring the image label to put in place of the buttons (to improve perfomance)
+    label = Label(options_frame, image=resizing_image, borderwidth=0)
+    label2 = Label(closing_frame, image=resizing_image2, borderwidth=0)
 
-    #resize_check = True
+    #deleting the buttons to improve perfomance and putting a label there
+    button_zoom_in.destroy()
+    button_zoom_out.destroy()
+    button_rotate_right.destroy()
+    button_rotate_left.destroy()
+    button_next.destroy()
+    button_back.destroy()
+    close_button.destroy()
+    minimize_button.destroy()
+    label.grid(row=0, column=0, columnspan=3, rowspan=3)
+    label2.grid(row=0, column=0, columnspan=2)
 
-    #label = Label(options_frame, image=resizing_image, borderwidth=0)
-    #label.grid(row=0, column=0, rowspan=10, columnspan=10, padx=0, pady=0)
-    #options_frame.config(padding = [3, 3, 3, 3])
+    # restoring the original options_frame size
+    options_frame.config(padding = [3, 3, 3, 3])
+    closing_frame.config(padding=[3, 3, 3, 3])
 
 def resizing_release(event):
     "function that puts the buttons back (when the mouse is released)"
-    global expand_button
     global minimize_button
     global button_zoom_in
     global button_zoom_out
@@ -644,20 +668,27 @@ def resizing_release(event):
     global button_back
     global resizing_image
     global options_frame
+    global closing_frame
+    global close_button
     global label
+    global label2
     global root
-    #global resize_check
+    global lock_on
+    global checkbox_Lock
 
+
+    # deleting the label with image
+    label.destroy()
+    label2.destroy()
+    # removing the options frame just in case
     options_frame.destroy()
-    button_zoom_in.destroy()
-    button_zoom_out.destroy()
-    button_rotate_right.destroy()
-    button_rotate_left.destroy()
-    button_next.destroy()
-    button_back.destroy()
-
+    closing_frame.destroy()
+    # restoring all the frames and buttons
     options_frame = ttk.Frame(root, relief="raised", padding=[10, 10, 10, 10])
     options_frame.grid(row=5, column=2, sticky="e")
+    closing_frame = ttk.Frame(root, relief="sunken", padding=[15, 10, 10, 10])
+    closing_frame.grid(row=0, column=3, columnspan=3, sticky="ne")
+
     button_zoom_in = ttk.Button(options_frame, text="Zoom In", command=lambda: zoom(True))
     button_zoom_out = ttk.Button(options_frame, text="Zoom Out", command=lambda: zoom(False))
     button_rotate_right = ttk.Button(options_frame, text="Rotate right", command=lambda: rotate_image(True))
@@ -666,11 +697,22 @@ def resizing_release(event):
     button_zoom_out.grid(row=2, column=1, padx=5)
     button_rotate_right.grid(row=1, column=2)
     button_rotate_left.grid(row=1, column=0, padx=5)
-    button_next = ttk.Button(options_frame, text="Next ->", command=lambda: next_image(current_image + 1))
-    button_next.grid(row=2, column=2)
-    button_back = ttk.Button(options_frame, text="<- Back", command=lambda: next_image(current_image - 1))
-    button_back.grid(row=2, column=0)
-    print("fuck")
+    close_button = ttk.Button(closing_frame, text='X', width=3, command=root.destroy)
+    close_button.grid(row=0, column=1, padx=5, ipady=3)
+    minimize_button = ttk.Button(closing_frame, text=' _ ', width=3,
+                                 command=lambda a=root: custom_titlebar.minimize_me(root))
+    minimize_button.grid(row=0, column=0, ipady=3)
+
+    next_ind, previous_ind = cycling_calculation()
+
+    button_next = ttk.Button(options_frame, text="Next ->", command=lambda: next_image(next_ind))
+    button_next.grid(row=2, column=2, padx=5)
+    button_back = ttk.Button(options_frame, text="<- Back", command=lambda: next_image(previous_ind))
+    button_back.grid(row=2, column=0, padx=5)
+
+    checkbox_Lock.state(["selected"])
+    lock_on.set(True)
+
 
 
 
@@ -684,6 +726,7 @@ def resizing_release(event):
 
 
 def resize_window(event):
+    "Function for resizing the whole window"
     global options_frame
     global resizing_image
     global root
@@ -693,7 +736,9 @@ def resize_window(event):
     global button_rotate_right
     global button_next
     global button_back
+    global label
 
+    #calculating the new window size
     ywin = root.winfo_y()
     difference_y = (event.y_root - ywin)
     xwin = root.winfo_x()
@@ -701,42 +746,26 @@ def resize_window(event):
 
     if root.winfo_height() > 150:  # 150 is the minimum height for the window
         try:
-            #root.geometry(f"{root.winfo_width()}x{difference_y}")
             root.geometry(f"{difference_x}x{difference_y}")
-            """
-            
-            options_frame.destroy()
-            button_zoom_in.destroy()
-            button_zoom_out.destroy()
-            button_rotate_right.destroy()
-            button_rotate_left.destroy()
-            button_next.destroy()
-            button_back.destroy()
-            """
-            options_frame = ttk.Frame(root, relief="raised", padding=[10, 10, 10, 10])
+            # reloading the label each iteration to avoid image-tearing
+            options_frame.grid_forget()
             options_frame.grid(row=5, column=2, sticky="e")
-            button_zoom_in = ttk.Button(options_frame, text="Zoom In", command=lambda: zoom(True))
-            button_zoom_out = ttk.Button(options_frame, text="Zoom Out", command=lambda: zoom(False))
-            button_rotate_right = ttk.Button(options_frame, text="Rotate right", command=lambda: rotate_image(True))
-            button_rotate_left = ttk.Button(options_frame, text="Rotate left", command=lambda: rotate_image(False))
-            button_zoom_in.grid(row=1, column=1, padx=5, pady=5)
-            button_zoom_out.grid(row=2, column=1, padx=5)
-            button_rotate_right.grid(row=1, column=2)
-            button_rotate_left.grid(row=1, column=0, padx=5)
-            button_next = ttk.Button(options_frame, text="Next ->", command=lambda: next_image(current_image+1))
-            button_next.grid(row=2, column=2)
-            button_back = ttk.Button(options_frame, text="<- Back", command=lambda: next_image(current_image-1))
-            button_back.grid(row=2, column=0)
+
+            label = Label(options_frame, image=resizing_image, borderwidth=0)
+            label.grid_forget()
+            label.grid(row=0, column=0, columnspan=3, rowspan=3)
+
+            label2 = Label(closing_frame, image=resizing_image2, borderwidth=0)
+            label2.grid_forget()
+            label2.grid(row=0, column=0, columnspan=2)
 
         except:
             pass
 
 
 
-
-
-
 resize_widget.bind("<B1-Motion>", resize_window)
+resize_widget.bind("<Button-1>", resizing_press)
 resize_widget.bind("<ButtonRelease-1>", resizing_release)
 
 
