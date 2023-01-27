@@ -469,12 +469,16 @@ def zoom(is_zoom_in):
             # we only put the sliders and activate the mouse movement function when image is zoomed-in
             canvas.bind("<B1-Motion>", moving_mouse)
             canvas.bind("<ButtonRelease-1>", mouse_release)
-            zoom_ver_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[0] + size_of_canvas_new[0],
+            zoom_ver_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[0] + canvas.winfo_height(),
                                     length=canvas.winfo_height(), orient="vertical", command=moving_pictures)
             zoom_ver_slider.grid(row=1, column=5)
-            zoom_hor_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[1] + size_of_canvas_new[1],
+            zoom_hor_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[1] + canvas.winfo_width(),
                                     length=canvas.winfo_width(), orient="horizontal", command=moving_pictures)
             zoom_hor_slider.grid(row=2, column=1, columnspan=4, sticky="n")
+            #placing the default sliders positions in the middle
+            zoom_hor_slider.set(zoom_hor_slider.cget("to")/2)
+            zoom_ver_slider.set(zoom_ver_slider.cget("to")/2)
+            print(zoom_ver_slider.get())
 
     print(size_of_image_new[0], " ", size_of_image_new[1])
     image1_new = ImageTk.PhotoImage(image_for_canvas_new.resize((size_of_image_new[1], size_of_image_new[0])))
@@ -737,6 +741,10 @@ def resize_window(event):
     global button_next
     global button_back
     global label
+    global canvas
+    global zoom_ver_slider
+    global zoom_hor_slider
+
 
     #calculating the new window size
     ywin = root.winfo_y()
@@ -747,8 +755,11 @@ def resize_window(event):
     if root.winfo_height() > 150:  # 150 is the minimum height for the window
         try:
             root.geometry(f"{difference_x}x{difference_y}")
+            if zoom_hor_slider.winfo_ismapped() or zoom_ver_slider.winfo_ismapped():
+                canvas.config(height=difference_y, width=difference_x - zoom_ver_slider.winfo_width())
+
             # reloading the label each iteration to avoid image-tearing
-            options_frame.grid_forget()
+            #options_frame.grid_forget()
             options_frame.grid(row=5, column=2, sticky="e")
 
             label = Label(options_frame, image=resizing_image, borderwidth=0)
