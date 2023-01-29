@@ -61,7 +61,7 @@ options_frame = ttk.Frame(root, relief="raised", padding=[10, 10, 10, 10])
 settings_frame = ttk.Frame(root, relief="sunken", padding=[10, 10, 10, 10])
 closing_frame = ttk.Frame(root, relief="sunken", padding=[15, 10, 10, 10])
 
-options_frame.grid(row=3, column=1)#, sticky="e")
+options_frame.grid(row=3, column=1, columnspan= 2)#, sticky="e")
 settings_frame.grid(row=0, column=0, columnspan=2, sticky="nw")
 closing_frame.grid(row=0, column = 1, columnspan=3, sticky="ne")
 # bind title bar motion to the move window function
@@ -72,10 +72,10 @@ close_button = ttk.Button(closing_frame, text='X', width=3, command=root.destroy
 close_button.grid(row=0, column=1, padx=5, ipady=3)
 
 
-Grid.rowconfigure(root, 0, weight=1)
+Grid.rowconfigure(root, 0, weight=0)
 Grid.rowconfigure(root, 1, weight=1)
 Grid.rowconfigure(root, 2, weight=1)
-Grid.rowconfigure(root, 3, weight=1)
+Grid.rowconfigure(root, 3, weight=0)
 #Grid.rowconfigure(root, 4, weight=0)
 #Grid.rowconfigure(root, 5, weight=0)
 
@@ -464,7 +464,7 @@ def zoom(is_zoom_in):
             canvas.bind("<ButtonRelease-1>", mouse_release)
             zoom_ver_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[0] + size_of_canvas_new[0],
                                     length=size_of_canvas_new[0], orient="vertical", command=moving_pictures)
-            zoom_ver_slider.grid(row=1, column=2, rowspan=2, sticky=SW)
+            zoom_ver_slider.grid(row=1, column=2, rowspan=1, sticky=SW)
             zoom_hor_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[1] + size_of_canvas_new[1],
                                     length=size_of_canvas_new[1], orient="horizontal", command=moving_pictures) #showvalue=0
             zoom_hor_slider.grid(row=2, column=1, sticky=NE)
@@ -549,6 +549,15 @@ def show_gif():
 
 
 
+def hide_menu():
+    "function that minimizes the menu"
+    global options_frame
+    if options_frame.winfo_ismapped():
+        options_frame.grid_forget()
+    else:
+        options_frame.grid(row=3, column=1, columnspan= 2)
+    #show_image(current_image)
+
 #label = Label(root, text=)
 #label.grid(row=3, column=0)
 
@@ -609,6 +618,9 @@ zoom_ver_slider = ttk.Scale(root, from_=0, to=10, length=1, command=moving_pictu
 
 expand_button = ttk.Button(settings_frame, text=' Fullscreen ', width=9, command=lambda a=root: custom_titlebar.maximize_me(a))
 minimize_button = ttk.Button(closing_frame, text=' _ ', width=3, command=lambda a=root: custom_titlebar.minimize_me(root))
+
+hide_settings_button = ttk.Button(settings_frame, text=' Hide Menu ', width=9, command=hide_menu)
+hide_settings_button.grid(row=0, column=4, ipady=3)
 
 expand_button.grid(row=0, column=3, ipady=3, padx=5)
 minimize_button.grid(row=0, column=0, ipady=3)
@@ -697,7 +709,7 @@ def resizing_release(event):
     closing_frame.destroy()
     # restoring all the frames and buttons
     options_frame = ttk.Frame(root, relief="raised", padding=[10, 10, 10, 10])
-    options_frame.grid(row=3, column=1, sticky=S)
+    options_frame.grid(row=3, column=1, sticky=S, columnspan= 2)
     closing_frame = ttk.Frame(root, relief="sunken", padding=[15, 10, 10, 10])
     closing_frame.grid(row=0, column=1, columnspan=3, sticky="ne")
 
@@ -768,7 +780,7 @@ def resize_window(event):
 
             # reloading the label each iteration to avoid image-tearing
             #options_frame.grid_forget()
-            options_frame.grid(row=3, column=1, sticky=S)
+            options_frame.grid(row=3, column=1, sticky=S, columnspan= 2)
 
             label = Label(options_frame, image=resizing_image, borderwidth=0)
             label.grid_forget()
