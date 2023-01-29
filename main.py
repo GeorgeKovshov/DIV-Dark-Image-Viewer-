@@ -61,9 +61,9 @@ options_frame = ttk.Frame(root, relief="raised", padding=[10, 10, 10, 10])
 settings_frame = ttk.Frame(root, relief="sunken", padding=[10, 10, 10, 10])
 closing_frame = ttk.Frame(root, relief="sunken", padding=[15, 10, 10, 10])
 
-options_frame.grid(row=5, column=2, sticky="e")
-settings_frame.grid(row=0, column=0, columnspan=4, sticky=W)
-closing_frame.grid(row=0, column = 3, columnspan=3, sticky="ne")
+options_frame.grid(row=3, column=1)#, sticky="e")
+settings_frame.grid(row=0, column=0, columnspan=2, sticky="nw")
+closing_frame.grid(row=0, column = 1, columnspan=3, sticky="ne")
 # bind title bar motion to the move window function
 
 
@@ -72,13 +72,21 @@ close_button = ttk.Button(closing_frame, text='X', width=3, command=root.destroy
 close_button.grid(row=0, column=1, padx=5, ipady=3)
 
 
-Grid.rowconfigure(root, 0, weight=0)
+Grid.rowconfigure(root, 0, weight=1)
 Grid.rowconfigure(root, 1, weight=1)
-Grid.rowconfigure(root, 2, weight=0)
-#Grid.rowconfigure(root, 3, weight=1)
+Grid.rowconfigure(root, 2, weight=1)
+Grid.rowconfigure(root, 3, weight=1)
 #Grid.rowconfigure(root, 4, weight=0)
 #Grid.rowconfigure(root, 5, weight=0)
 
+
+Grid.columnconfigure(root, 0, weight=1)
+Grid.columnconfigure(root, 1, weight=1)
+Grid.columnconfigure(root, 2, weight=1)
+Grid.columnconfigure(root, 3, weight=1)
+#Grid.columnconfigure(root, 4, weight=1)
+#Grid.columnconfigure(root, 5, weight=1000)
+"""
 Grid.columnconfigure(root, 0, weight=1000)
 Grid.columnconfigure(root, 1, weight=1)
 Grid.columnconfigure(root, 2, weight=1)
@@ -86,7 +94,7 @@ Grid.columnconfigure(root, 3, weight=1)
 Grid.columnconfigure(root, 4, weight=1)
 Grid.columnconfigure(root, 5, weight=1000)
 #Grid.columnconfigure(root,4, weight=1)
-
+"""
 
 # storing the current image directory path
 current_dir_path = os.getcwd()
@@ -314,7 +322,7 @@ def show_image(img_number):
         canvas.create_image(canvas.winfo_width()/2, canvas.winfo_height()/2, image=image1_new)
 
 
-    canvas.grid(row=1, column=1, columnspan=4)
+    canvas.grid(row=1, column=1, sticky="se") #columnspan=4)
 
 
 
@@ -456,10 +464,10 @@ def zoom(is_zoom_in):
             canvas.bind("<ButtonRelease-1>", mouse_release)
             zoom_ver_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[0] + size_of_canvas_new[0],
                                     length=size_of_canvas_new[0], orient="vertical", command=moving_pictures)
-            zoom_ver_slider.grid(row=1, column=5)
+            zoom_ver_slider.grid(row=1, column=2, rowspan=2, sticky=SW)
             zoom_hor_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[1] + size_of_canvas_new[1],
                                     length=size_of_canvas_new[1], orient="horizontal", command=moving_pictures) #showvalue=0
-            zoom_hor_slider.grid(row=2, column=1, columnspan=4)
+            zoom_hor_slider.grid(row=2, column=1, sticky=NE)
         canvas.config(height=size_of_canvas_new[0], width=size_of_canvas_new[1])
     else:
         if canvas.winfo_width() < size_of_image_new[1] or canvas.winfo_height()< size_of_image_new[0]:
@@ -471,10 +479,10 @@ def zoom(is_zoom_in):
             canvas.bind("<ButtonRelease-1>", mouse_release)
             zoom_ver_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[0] + canvas.winfo_height(),
                                     length=canvas.winfo_height(), orient="vertical", command=moving_pictures)
-            zoom_ver_slider.grid(row=1, column=5)
+            zoom_ver_slider.grid(row=1, column=2,sticky=SW, rowspan=1)
             zoom_hor_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[1] + canvas.winfo_width(),
                                     length=canvas.winfo_width(), orient="horizontal", command=moving_pictures)
-            zoom_hor_slider.grid(row=2, column=1, columnspan=4, sticky="n")
+            zoom_hor_slider.grid(row=2, column=1, sticky=NE)
             #placing the default sliders positions in the middle
             zoom_hor_slider.set(zoom_hor_slider.cget("to")/2)
             zoom_ver_slider.set(zoom_ver_slider.cget("to")/2)
@@ -488,7 +496,7 @@ def zoom(is_zoom_in):
     else:
         canvas_image_to_move = canvas.create_image(canvas.winfo_width()/2, canvas.winfo_height()/2, anchor=CENTER, image=image1_new)
     #canvas_image_to_move = canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, anchor=CENTER, image=image1_new)
-    canvas.grid(row=1, column=1, columnspan=4)
+    canvas.grid(row=1, column=1)
     print(canvas.bbox(canvas_image_to_move))
     print(canvas.winfo_height(), " ",  canvas.winfo_width())
     #zoom_slider = Scale(root, from_=0, to=400, length=canvas.winfo_height())
@@ -689,9 +697,9 @@ def resizing_release(event):
     closing_frame.destroy()
     # restoring all the frames and buttons
     options_frame = ttk.Frame(root, relief="raised", padding=[10, 10, 10, 10])
-    options_frame.grid(row=5, column=2, sticky="e")
+    options_frame.grid(row=3, column=1, sticky=S)
     closing_frame = ttk.Frame(root, relief="sunken", padding=[15, 10, 10, 10])
-    closing_frame.grid(row=0, column=3, columnspan=3, sticky="ne")
+    closing_frame.grid(row=0, column=1, columnspan=3, sticky="ne")
 
     button_zoom_in = ttk.Button(options_frame, text="Zoom In", command=lambda: zoom(True))
     button_zoom_out = ttk.Button(options_frame, text="Zoom Out", command=lambda: zoom(False))
@@ -755,12 +763,12 @@ def resize_window(event):
     if root.winfo_height() > 150:  # 150 is the minimum height for the window
         try:
             root.geometry(f"{difference_x}x{difference_y}")
-            if zoom_hor_slider.winfo_ismapped() or zoom_ver_slider.winfo_ismapped():
-                canvas.config(height=difference_y, width=difference_x - zoom_ver_slider.winfo_width())
+            #if zoom_hor_slider.winfo_ismapped() or zoom_ver_slider.winfo_ismapped():
+            #    canvas.config(height=difference_y-100, width=difference_x - zoom_ver_slider.winfo_width() -100 )
 
             # reloading the label each iteration to avoid image-tearing
             #options_frame.grid_forget()
-            options_frame.grid(row=5, column=2, sticky="e")
+            options_frame.grid(row=3, column=1, sticky=S)
 
             label = Label(options_frame, image=resizing_image, borderwidth=0)
             label.grid_forget()
@@ -780,7 +788,7 @@ resize_widget.bind("<Button-1>", resizing_press)
 resize_widget.bind("<ButtonRelease-1>", resizing_release)
 
 
-resize_widget.grid(row=5, column=4, columnspan=10, ipadx=3, ipady=3, padx=2, pady=2, sticky="se")
+resize_widget.grid(row=3, column=1, columnspan=3, ipadx=3, ipady=3, padx=2, pady=2, sticky="se")# columnspan=10
 
 
 
