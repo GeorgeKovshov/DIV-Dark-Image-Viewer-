@@ -62,7 +62,7 @@ settings_frame = ttk.Frame(root, relief="sunken", padding=[10, 10, 10, 10])
 closing_frame = ttk.Frame(root, relief="sunken", padding=[15, 10, 10, 10])
 
 options_frame.grid(row=3, column=1, columnspan= 2)#, sticky="e")
-settings_frame.grid(row=0, column=0, columnspan=2, sticky="nw")
+settings_frame.grid(row=0, column=0, columnspan=3, sticky="nw")
 closing_frame.grid(row=0, column = 1, columnspan=3, sticky="ne")
 # bind title bar motion to the move window function
 
@@ -111,6 +111,9 @@ current_image = 0
 # variable for window size lock
 lock_on = BooleanVar()
 
+# variable for whether the controls menu is hidden
+hide_on = BooleanVar()
+
 # variable for rotation
 rotation = 0
 
@@ -135,18 +138,30 @@ def max_size_reshape(height, width):
         return height, width
     else:
         return max_size_reshape(height//2, width//2)
+    """MAKE MAX SIZE RESHAPE RECURSIVE!!!"""
+
+
 
 def lock_on_size_reshape(height, width, canv_height, canv_width):
     """function to fit image inside of window and canvas,
      returns new height and width"""
-
+    """
+        if height <= canv_height and width <= canv_width:
+            return height, width
+        else:
+            if height - canv_height > width - canv_width:  # Calculating which dimension is out of bounds (if both then which is the bigger one)
+                return canv_height, round(width * (canv_height / height))
+            else:
+                return round(height * (canv_width / width)), canv_width
+        """
     if height <= canv_height and width <= canv_width:
         return height, width
     else:
         if height - canv_height > width - canv_width:  # Calculating which dimension is out of bounds (if both then which is the bigger one)
-            return canv_height, round(width * (canv_height / height))
+            return lock_on_size_reshape(canv_height, round(width * (canv_height / height)), canv_height, canv_width)
         else:
-            return round(height * (canv_width / width)), canv_width
+            return lock_on_size_reshape(round(height * (canv_width / width)), canv_width, canv_height, canv_width)
+
 
 
 
@@ -294,6 +309,8 @@ def show_image(img_number):
     global rotation
     global current_dir_path
     global actual_image #without storing image here, garbage collector takes the image away
+    global options_frame
+
 
     image_for_canvas_new = Image.open(current_dir_path + "/" + images[img_number])
 
@@ -310,8 +327,15 @@ def show_image(img_number):
     if not lock_on.get():
         size_of_image_new = max_size_reshape(image_for_canvas_new.height, image_for_canvas_new.width)
         canvas.config(height=size_of_image_new[0], width=size_of_image_new[1])
-        root.geometry("")
+        if size_of_image_new[1]>400:
+            root.geometry("")
+        else:
+            root.geometry(f"600x{size_of_image_new[0] + options_frame.winfo_height() + 58}") #size_of_image_new[0] + 152
     else:
+        if hide_on.get():
+            canvas.config(height=root.winfo_height() - 69, width=root.winfo_width())  # height=root.winfo_height() - 152
+        else:
+            canvas.config(height=root.winfo_height() - options_frame.winfo_height() - 58, width=root.winfo_width()) # height=root.winfo_height() - 152
         size_of_image_new = lock_on_size_reshape(image_for_canvas_new.height, image_for_canvas_new.width,
                                                  canvas.winfo_height(), canvas.winfo_width())
     image1_new = ImageTk.PhotoImage(image_for_canvas_new.resize((size_of_image_new[1], size_of_image_new[0])))
@@ -319,7 +343,8 @@ def show_image(img_number):
     if not lock_on.get():
         canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, image=image1_new)
     else:
-        canvas.create_image(canvas.winfo_width()/2, canvas.winfo_height()/2, image=image1_new)
+        #canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, image=image1_new)
+        canvas.create_image(canvas.winfo_width()/2, canvas.winfo_height()/2, anchor=CENTER, image=image1_new)
 
 
     canvas.grid(row=1, column=1, sticky="se") #columnspan=4)
@@ -407,6 +432,8 @@ def next_image(img_number):
     button_next.grid(row=2, column=2)
     button_back = ttk.Button(options_frame, text="<- Back", command=lambda: next_image(previous_ind))
     button_back.grid(row=2, column=0)
+    root.bind("<Right>", lambda event: next_image(next_ind))
+    root.bind("<Left>", lambda event: next_image(previous_ind))
 
 
 
@@ -477,22 +504,38 @@ def zoom(is_zoom_in):
             # we only put the sliders and activate the mouse movement function when image is zoomed-in
             canvas.bind("<B1-Motion>", moving_mouse)
             canvas.bind("<ButtonRelease-1>", mouse_release)
+
+
             zoom_ver_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[0] + canvas.winfo_height(),
-                                    length=canvas.winfo_height(), orient="vertical", command=moving_pictures)
-            zoom_ver_slider.grid(row=1, column=2,sticky=SW, rowspan=1)
+                                        length=canvas.winfo_height(), orient="vertical", command=moving_pictures)
             zoom_hor_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[1] + canvas.winfo_width(),
-                                    length=canvas.winfo_width(), orient="horizontal", command=moving_pictures)
+                                        length=canvas.winfo_width(), orient="horizontal", command=moving_pictures)
+
+            zoom_ver_slider.grid(row=1, column=2,sticky=SW, rowspan=1)
+
             zoom_hor_slider.grid(row=2, column=1, sticky=NE)
+
             #placing the default sliders positions in the middle
             zoom_hor_slider.set(zoom_hor_slider.cget("to")/2)
             zoom_ver_slider.set(zoom_ver_slider.cget("to")/2)
             print(zoom_ver_slider.get())
+
+
 
     print(size_of_image_new[0], " ", size_of_image_new[1])
     image1_new = ImageTk.PhotoImage(image_for_canvas_new.resize((size_of_image_new[1], size_of_image_new[0])))
     actual_image = image1_new
     if not lock_on.get():
         canvas_image_to_move = canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, anchor=CENTER, image=image1_new)
+        """WORK ON THIS!!! Resizing the root for zoomed-in image"""
+        if canvas.winfo_width()<600 and canvas.winfo_height()<300:
+            root.geometry("600x300")
+        elif canvas.winfo_width()<600:
+            root.geometry(f"600x{canvas.winfo_height() +152}")
+        elif canvas.winfo_height()<300:
+            root.geometry(f"{canvas.winfo_width()}x300")
+        else:
+            root.geometry("")
     else:
         canvas_image_to_move = canvas.create_image(canvas.winfo_width()/2, canvas.winfo_height()/2, anchor=CENTER, image=image1_new)
     #canvas_image_to_move = canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, anchor=CENTER, image=image1_new)
@@ -552,10 +595,16 @@ def show_gif():
 def hide_menu():
     "function that minimizes the menu"
     global options_frame
+    global hide_settings_button
+    global hide_on
     if options_frame.winfo_ismapped():
         options_frame.grid_forget()
+        hide_settings_button.configure(text="Min. Menu")
+        hide_on.set(True)
     else:
         options_frame.grid(row=3, column=1, columnspan= 2)
+        hide_settings_button.configure(text="Std. Menu")
+        hide_on.set(False)
     #show_image(current_image)
 
 #label = Label(root, text=)
@@ -578,7 +627,8 @@ else:
 button_open = ttk.Button(settings_frame, text=" Open", width=5, command=open_image)
 button_open.grid(row=0, column=0, ipady=3, padx=5)
 
-
+root.bind("<Right>", lambda event: next_image(1))
+root.bind("<Left>", lambda event: next_image(len(images) - 1))
 
 
 
@@ -594,7 +644,7 @@ button_rotate_right.grid(row=1, column=2)
 button_rotate_left = ttk.Button(options_frame, text="Rotate left", command=lambda: rotate_image(False))
 button_rotate_left.grid(row=1, column=0, padx=5)
 
-
+# checkbox that locks the window size
 checkbox_frame = ttk.Frame(settings_frame, borderwidth=5, relief="sunken", style="check.TFrame")
 checkbox_frame.grid(row=0, column=1,)
 checkbox_Lock = ttk.Checkbutton(checkbox_frame, text=" Lock window", variable=lock_on, onvalue=True, offvalue=False)
@@ -607,11 +657,23 @@ img_unticked_box = ImageTk.PhotoImage(Image.open("uncheck2.png"))
 img_ticked_box = ImageTk.PhotoImage(Image.open("check2.png"))
 viewer_style.change_checkbutton(style, img_ticked_box, img_unticked_box)
 
-
+"""
+# checkbox that minimizes the UI
+checkbox_frame = ttk.Frame(settings_frame, borderwidth=5, relief="sunken", style="check2.TFrame")
+checkbox_frame.grid(row=0, column=4,)
+checkbox_hide = ttk.Checkbutton(checkbox_frame, text=" Hide Menu", variable=hide_on, onvalue=True, offvalue=False)
+#checkbox_Lock.deselect()
+checkbox_hide.grid(row=0, column=1, ipadx=2, ipady=3)
+checkbox_hide.bind('<Enter>', lambda event, a = 'check2': viewer_style.change_style(event, a, style))
+checkbox_hide.bind('<Leave>', lambda event, a = 'check2': viewer_style.change_style_back(event, a, style))
+"""
 
 
 zoom_hor_slider = ttk.Scale(root, from_=0, to=10, length=1, command=moving_pictures)
 zoom_ver_slider = ttk.Scale(root, from_=0, to=10, length=1, command=moving_pictures)
+
+root.bind("<Up>", lambda event: zoom(True))
+root.bind("<Down>", lambda event: zoom(False))
 
 
 # put a close button on the title bar
@@ -619,7 +681,7 @@ zoom_ver_slider = ttk.Scale(root, from_=0, to=10, length=1, command=moving_pictu
 expand_button = ttk.Button(settings_frame, text=' Fullscreen ', width=9, command=lambda a=root: custom_titlebar.maximize_me(a))
 minimize_button = ttk.Button(closing_frame, text=' _ ', width=3, command=lambda a=root: custom_titlebar.minimize_me(root))
 
-hide_settings_button = ttk.Button(settings_frame, text=' Hide Menu ', width=9, command=hide_menu)
+hide_settings_button = ttk.Button(settings_frame, text=' Std. Menu ', width=9, command=hide_menu)
 hide_settings_button.grid(row=0, column=4, ipady=3)
 
 expand_button.grid(row=0, column=3, ipady=3, padx=5)
@@ -699,6 +761,7 @@ def resizing_release(event):
     global root
     global lock_on
     global checkbox_Lock
+    global hide_on
 
 
     # deleting the label with image
@@ -709,7 +772,8 @@ def resizing_release(event):
     closing_frame.destroy()
     # restoring all the frames and buttons
     options_frame = ttk.Frame(root, relief="raised", padding=[10, 10, 10, 10])
-    options_frame.grid(row=3, column=1, sticky=S, columnspan= 2)
+    if not hide_on.get():
+        options_frame.grid(row=3, column=1, sticky=S, columnspan= 2)
     closing_frame = ttk.Frame(root, relief="sunken", padding=[15, 10, 10, 10])
     closing_frame.grid(row=0, column=1, columnspan=3, sticky="ne")
 
@@ -733,6 +797,8 @@ def resizing_release(event):
     button_next.grid(row=2, column=2, padx=5)
     button_back = ttk.Button(options_frame, text="<- Back", command=lambda: next_image(previous_ind))
     button_back.grid(row=2, column=0, padx=5)
+
+
 
     checkbox_Lock.state(["selected"])
     lock_on.set(True)
@@ -764,6 +830,8 @@ def resize_window(event):
     global canvas
     global zoom_ver_slider
     global zoom_hor_slider
+    global hide_on
+
 
 
     #calculating the new window size
@@ -772,23 +840,27 @@ def resize_window(event):
     xwin = root.winfo_x()
     difference_x = (event.x_root - xwin)
 
-    if root.winfo_height() > 150:  # 150 is the minimum height for the window
+    if difference_x>563 and difference_y>152:  # 150 is the minimum height for the window
         try:
             root.geometry(f"{difference_x}x{difference_y}")
-            #if zoom_hor_slider.winfo_ismapped() or zoom_ver_slider.winfo_ismapped():
-            #    canvas.config(height=difference_y-100, width=difference_x - zoom_ver_slider.winfo_width() -100 )
+            if zoom_hor_slider.winfo_ismapped()==1 or zoom_ver_slider.winfo_ismapped()==1:
+                canvas.config(height=difference_y, width=difference_x - zoom_ver_slider.winfo_width() )
+
 
             # reloading the label each iteration to avoid image-tearing
             #options_frame.grid_forget()
-            options_frame.grid(row=3, column=1, sticky=S, columnspan= 2)
+            if not hide_on.get():
+                options_frame.grid(row=3, column=1, sticky=S, columnspan= 2)
 
-            label = Label(options_frame, image=resizing_image, borderwidth=0)
-            label.grid_forget()
-            label.grid(row=0, column=0, columnspan=3, rowspan=3)
+                label = Label(options_frame, image=resizing_image, borderwidth=0)
+                label.grid_forget()
+                label.grid(row=0, column=0, columnspan=3, rowspan=3)
 
             label2 = Label(closing_frame, image=resizing_image2, borderwidth=0)
             label2.grid_forget()
             label2.grid(row=0, column=0, columnspan=2)
+
+
 
         except:
             pass
