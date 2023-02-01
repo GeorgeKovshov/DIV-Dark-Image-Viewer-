@@ -382,6 +382,8 @@ def show_image_resize(img_number):
 
 
 
+    #canvas.grid_forget()
+
     # if the window is locked, fit the image in window
     # else fit it and window into the monitor
     if not lock_on.get():
@@ -396,15 +398,19 @@ def show_image_resize(img_number):
         if hide_on.get():
             canvas.config(height=root.winfo_height() - 69, width=root.winfo_width())  # height=root.winfo_height() - 152
         else:
-            canvas.config(height=root.winfo_height() - options_frame.winfo_height() - 58, width=root.winfo_width()) # height=root.winfo_height() - 152
-        size_of_image_new = lock_on_size_reshape(actual_image.height(), actual_image.width(),
-                                                 canvas.winfo_height(), canvas.winfo_width())
+            #canvas.config(height=root.winfo_height() - options_frame.winfo_height() - 58, width=root.winfo_width()) # height=root.winfo_height() - 152
+            canvas.config(height=actual_image.height(), width=actual_image.width())  # height=root.winfo_height() - 152
+        #size_of_image_new = lock_on_size_reshape(actual_image.height(), actual_image.width(),
+        #                                         canvas.winfo_height(), canvas.winfo_width())
 
     if not lock_on.get():
         canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, image=actual_image)
     else:
-        #canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, image=image1_new)
-        canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, image=actual_image)
+        canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, image=image1_new)
+        #canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, image=actual_image)
+        #canvas.create_image(actual_image.width()/2,actual_image.height()/2, image=actual_image) canvas.winfo_height(), canvas.winfo_width()
+        #canvas.create_image(canvas.winfo_width()/2, canvas.winfo_height()/2, image=actual_image)
+    canvas.grid(row=1, column=1, sticky="se")  # columnspan=4)
 
 
 
@@ -414,9 +420,10 @@ def show_image_resize(img_number):
 
 
 
-# Initializing canvas for images to be put into
+    # Initializing canvas for images to be put into
 canvas = tkinter.Canvas(root, height=1, width=1)
-canvas.configure(background="#121212", highlightbackground="#D9DDDC", highlightthickness=0)
+#canvas.configure(background="#121212", highlightbackground="#D9DDDC", highlightthickness=0)
+canvas.configure(background="#222222", highlightbackground="#D9DDDC", highlightthickness=0)
 canvas_image_to_move = canvas.create_image(1, 1)
 #canvas.grid(row=1, column=1, columnspan=4)
 # Loading the first image
@@ -891,7 +898,7 @@ def resizing_release(event):
 
 
 def resize_window_with_zoom(event):
-    "Function for resizing the whole window"
+    "Function for resizing the whole window (when the image was zoomed-in)"
     global options_frame
     global resizing_image
     global root
@@ -910,6 +917,7 @@ def resize_window_with_zoom(event):
     global actual_image_height
     global actual_image_width
     global zoom_on
+    global canvas_image_to_move
 
 
     print("with zoom")
@@ -918,25 +926,66 @@ def resize_window_with_zoom(event):
     difference_y = (event.y_root - ywin)
     xwin = root.winfo_x()
     difference_x = (event.x_root - xwin)
+    print("coordinates", canvas.coords(canvas_image_to_move))
 
     if difference_x>563 and difference_y>147: #difference_x>563 and difference_y>152:  # 150 is the minimum height for the window
         try:
+            print("height", canvas.winfo_height(), actual_image_height, actual_image.height())
+            print("width", canvas.winfo_width(), actual_image_width, actual_image.width())
+            image_coordinates = canvas.bbox(canvas_image_to_move)
             root.geometry(f"{difference_x}x{difference_y}")
-            if actual_image_height == actual_image.height() or actual_image_width == actual_image.width(): #\
-                    #or canvas.winfo_height()< actual_image_height or canvas.winfo_width() < actual_image_width:
-                canvas.config(height=root.winfo_height() - zoom_hor_slider.winfo_height() - 158,
-                              width=root.winfo_width() - zoom_ver_slider.winfo_width())
+            x=0
+            y=0
+            if canvas.winfo_height() < actual_image.height():
+                y= root.winfo_height() - zoom_hor_slider.winfo_height() - 158 - canvas.winfo_height()
+                print("y=", y)
+                canvas.config(height=root.winfo_height() - zoom_hor_slider.winfo_height() - 158)
                 zoom_ver_slider.config(length=canvas.winfo_height())
+                print("smaller")
+                y_stop = abs(image_coordinates[1]) + abs(image_coordinates[3]) - canvas.winfo_height()
+                if -y_stop <= image_coordinates[1] + y <= 0:
+                    canvas.move(canvas_image_to_move, 0, y)
+            if canvas.winfo_width() < actual_image.width():
+                x = root.winfo_width() - zoom_ver_slider.winfo_width() - canvas.winfo_width()
+                canvas.config(width=min((root.winfo_width() - zoom_ver_slider.winfo_width(),actual_image.width())))
                 zoom_hor_slider.config(length=canvas.winfo_width())
                 print("smaller")
-            else:
+                x_stop = abs(image_coordinates[0]) + abs(image_coordinates[2]) - canvas.winfo_width()
+                if -x_stop <= image_coordinates[0] + x <= 0 and canvas.coords(canvas_image_to_move):
+                    canvas.move(canvas_image_to_move, x, 0)
+            #canvas.move(canvas_image_to_move, x, y)
 
-                #canvas.config(height=actual_image.height(),
+
+            print("coordinates", canvas.coords(canvas_image_to_move))
+
+            # x_movement = e.x - moving_shift_X  # calculating horizontal movement value
+            # y_movement = e.y - moving_shift_Y  # calculating vertical movement value
+            # calculating the coordinates of the image boundaries in relation to canvas
+            """
+            y_stop = abs(image_coordinates[1]) + abs(image_coordinates[3]) - canvas.winfo_height()
+            x_stop = abs(image_coordinates[0]) + abs(image_coordinates[2]) - canvas.winfo_width()
+            """
+            # while moving the picture with the mouse, the slider will not move the image
+            # zoom_ver_slider.config(to=-y_stop, command=empty_dunction)
+            # zoom_hor_slider.config(to=-x_stop, command=empty_dunction)
+
+            # We only move the image if it's not getting out of bounds of canvas, moving shift !=0 here is the measure against jugged movement
+            """
+            if -y_stop <= image_coordinates[1] + y <= 0:
+                canvas.move(canvas_image_to_move, 0, y)
+                # zoom_ver_slider.set(zoom_ver_slider.get() + y_movement)
+            if -x_stop <= image_coordinates[0] + x <= 0:
+                canvas.move(canvas_image_to_move, x, 0)
+            """
+                # zoom_hor_slider.set(zoom_hor_slider.get() + x_movement)
+
+                # canvas.config(height=actual_image.height(),
                 #              width=actual_image.width())
-                canvas.grid_forget()
-                show_image_resize(current_image)
-                canvas.grid(row=1, column=1, sticky="se")  # columnspan=4)
-                #print("bigger")
+                # canvas.grid_forget()
+                # show_image_resize(current_image)
+                # canvas.grid(row=1, column=1, sticky="se")  # columnspan=4)
+                # print("bigger")
+
             """
             if not zoom_on.get():
                 #if actual_image_height!=actual_image.height() or actual_image_width!=actual_image.width() \
@@ -954,7 +1003,7 @@ def resize_window_with_zoom(event):
             else:
                 zoom_on.set(True)
             """
-                # canvas.config(height=root.winfo_height() - 155, width=root.winfo_width() - zoom_ver_slider.winfo_width())
+            # canvas.config(height=root.winfo_height() - 155, width=root.winfo_width() - zoom_ver_slider.winfo_width())
 
             """
             if zoom_hor_slider.winfo_ismapped()==1 or zoom_ver_slider.winfo_ismapped()==1:
@@ -990,7 +1039,7 @@ def resize_window_with_zoom(event):
 
 
 def resize_window_no_zoom(event):
-    "Function for resizing the whole window"
+    "Function for resizing the whole window (when the image is not zoomed-in)"
     global options_frame
     global resizing_image
     global root
@@ -1022,7 +1071,9 @@ def resize_window_no_zoom(event):
             root.geometry(f"{difference_x}x{difference_y}")
             if actual_image_height != actual_image.height() or actual_image_width != actual_image.width() \
                     or root.winfo_height() - 152 < actual_image_height or root.winfo_width() < actual_image_width:
-                show_image_resize(current_image)
+
+                show_image(current_image)
+
 
 
 
@@ -1087,7 +1138,7 @@ resize_widget.bind("<ButtonRelease-1>", resizing_release)
 
 resize_widget.grid(row=3, column=1, columnspan=3, ipadx=3, ipady=3, padx=2, pady=2, sticky="se")# columnspan=10
 
-
+print(canvas.winfo_height(), actual_image_height, actual_image.height())
 
 
 
