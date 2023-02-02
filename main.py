@@ -119,6 +119,9 @@ hide_on = BooleanVar()
 zoom_on = BooleanVar()
 zoom_value = 1
 
+# variable for whether the app is fullscreen'd
+fullscreen_on = False
+
 
 # variable for rotation
 rotation = 0
@@ -319,6 +322,9 @@ def show_image(img_number):
     global actual_image_height
     global actual_image_width
     global zoom_value
+    global fullscreen_on
+
+
 
 
     image_for_canvas_new = Image.open(current_dir_path + "/" + images[img_number])
@@ -347,7 +353,9 @@ def show_image(img_number):
         #    print("we are here")
         #    root.geometry(f"600x{size_of_image_new[0] + options_frame.winfo_height() + 58}") #size_of_image_new[0] + 152
     else:
-        if hide_on.get():
+        if fullscreen_on:
+            canvas.config(height=root.winfo_height(), width=root.winfo_width())
+        elif hide_on.get():
             canvas.config(height=root.winfo_height() - 69, width=root.winfo_width())  # height=root.winfo_height() - 152
         else:
             canvas.config(height=root.winfo_height() - options_frame.winfo_height() - 58, width=root.winfo_width()) # height=root.winfo_height() - 152
@@ -669,7 +677,7 @@ def show_gif():
 
 
 def hide_menu():
-    "function that minimizes the menu"
+    "function that minimizes the controls/options menu"
     global options_frame
     global hide_settings_button
     global hide_on
@@ -681,7 +689,50 @@ def hide_menu():
         options_frame.grid(row=3, column=1, columnspan= 2)
         hide_settings_button.configure(text="Std. Menu")
         hide_on.set(False)
-    #show_image(current_image)
+
+
+
+
+
+def fullscreen():
+    "function that enters fullscreen mode"
+    global fullscreen_on
+    global old_position
+    global hide_on
+    global closing_frame
+    global settings_frame
+    global resize_widget
+    global lock_on
+    #global actual_image_width
+    #global actual_image_height
+
+    if fullscreen_on:
+
+        fullscreen_on = False
+        root.unbind("<Escape>")
+        settings_frame.grid(row=0, column=0, columnspan=3, sticky="nw")
+        closing_frame.grid(row=0, column=1, columnspan=3, sticky="ne")
+        resize_widget.grid(row=3, column=1, columnspan=3, ipadx=3, ipady=3, padx=2, pady=2, sticky="se")
+        lock_on.set(False)
+        show_image(current_image)
+        #root.geometry(f"{actual_image_width+200}x{actual_image_height+200}")
+    else:
+        root.geometry(f"{root.winfo_screenwidth()}x{root.winfo_screenheight()}+0+0")
+        fullscreen_on = True
+        root.bind("<Escape>", lambda event: fullscreen())
+        closing_frame.grid_forget()
+        settings_frame.grid_forget()
+        resize_widget.grid_forget()
+        lock_on.set(True)
+    if fullscreen_on and not hide_on.get():
+        hide_menu()
+    elif not fullscreen_on:
+        hide_menu()
+
+
+
+
+
 
 #label = Label(root, text=)
 #label.grid(row=3, column=0)
@@ -733,17 +784,6 @@ img_unticked_box = ImageTk.PhotoImage(Image.open("uncheck2.png"))
 img_ticked_box = ImageTk.PhotoImage(Image.open("check2.png"))
 viewer_style.change_checkbutton(style, img_ticked_box, img_unticked_box)
 
-"""
-# checkbox that minimizes the UI
-checkbox_frame = ttk.Frame(settings_frame, borderwidth=5, relief="sunken", style="check2.TFrame")
-checkbox_frame.grid(row=0, column=4,)
-checkbox_hide = ttk.Checkbutton(checkbox_frame, text=" Hide Menu", variable=hide_on, onvalue=True, offvalue=False)
-#checkbox_Lock.deselect()
-checkbox_hide.grid(row=0, column=1, ipadx=2, ipady=3)
-checkbox_hide.bind('<Enter>', lambda event, a = 'check2': viewer_style.change_style(event, a, style))
-checkbox_hide.bind('<Leave>', lambda event, a = 'check2': viewer_style.change_style_back(event, a, style))
-"""
-
 
 zoom_hor_slider = ttk.Scale(root, from_=0, to=10, length=1, command=moving_pictures)
 zoom_ver_slider = ttk.Scale(root, from_=0, to=10, length=1, command=moving_pictures)
@@ -752,9 +792,8 @@ root.bind("<Up>", lambda event: zoom(True))
 root.bind("<Down>", lambda event: zoom(False))
 
 
-# put a close button on the title bar
 
-expand_button = ttk.Button(settings_frame, text=' Fullscreen ', width=9, command=lambda a=root: custom_titlebar.maximize_me(a))
+expand_button = ttk.Button(settings_frame, text=' Fullscreen ', width=9, command=fullscreen)#command=lambda a=root: custom_titlebar.maximize_me(a))
 minimize_button = ttk.Button(closing_frame, text=' _ ', width=3, command=lambda a=root: custom_titlebar.minimize_me(root))
 
 hide_settings_button = ttk.Button(settings_frame, text=' Std. Menu ', width=9, command=hide_menu)
@@ -775,6 +814,7 @@ print(monitor_height, monitor_width)
 
 resize_widget = ttk.Frame(root, cursor='sizing')
 
+# loading the images of menus instead of them to improve perfomance during resizing the window
 resizing_image = ImageTk.PhotoImage(Image.open("menu.png"))
 resizing_image2 = ImageTk.PhotoImage(Image.open("close_menu.png"))
 label = Label(options_frame, image=resizing_image, borderwidth=0)
@@ -797,7 +837,7 @@ def resizing_press(event):
     global close_button
     global label
     global label2
-    global resize_check
+
 
     #restoring the image label to put in place of the buttons (to improve perfomance)
     label = Label(options_frame, image=resizing_image, borderwidth=0)
@@ -844,7 +884,6 @@ def resizing_release(event):
     global label2
     global root
     global lock_on
-    global checkbox_Lock
     global hide_on
 
 
@@ -875,6 +914,7 @@ def resizing_release(event):
                                  command=lambda a=root: custom_titlebar.minimize_me(root))
     minimize_button.grid(row=0, column=0, ipady=3)
 
+    # using a function to determine which is the next and previous image
     next_ind, previous_ind = cycling_calculation()
 
     button_next = ttk.Button(options_frame, text="Next ->", command=lambda: next_image(next_ind))
@@ -884,146 +924,76 @@ def resizing_release(event):
 
 
 
-
-
-
-
-
-
-    #label = Label(options_frame, image=resizing_image, borderwidth=0)
-    #label.grid_forget()
-    #label.destroy()
-    #options_frame.config(padding = [10, 10, 10, 10])
-    #root.update()
-
-
 def resize_window_with_zoom(event):
     "Function for resizing the whole window (when the image was zoomed-in)"
     global options_frame
     global resizing_image
     global root
-    global button_zoom_in
-    global button_zoom_out
-    global button_rotate_left
-    global button_rotate_right
-    global button_next
-    global button_back
     global label
+    global label2
     global canvas
     global zoom_ver_slider
     global zoom_hor_slider
-    global hide_on
+    global hide_ong
+    global zoom_on
     global actual_image
     global actual_image_height
     global actual_image_width
-    global zoom_on
     global canvas_image_to_move
 
-
-    print("with zoom")
     #calculating the new window size
     ywin = root.winfo_y()
     difference_y = (event.y_root - ywin)
     xwin = root.winfo_x()
     difference_x = (event.x_root - xwin)
-    print("coordinates", canvas.coords(canvas_image_to_move))
 
-    if difference_x>563 and difference_y>147: #difference_x>563 and difference_y>152:  # 150 is the minimum height for the window
+    if difference_x>563 and difference_y>147:
         try:
-            print("height", canvas.winfo_height(), actual_image_height, actual_image.height())
-            print("width", canvas.winfo_width(), actual_image_width, actual_image.width())
             image_coordinates = canvas.bbox(canvas_image_to_move)
             root.geometry(f"{difference_x}x{difference_y}")
-            x=0
-            y=0
+
+            #calculations for when the zoomed image is smaller than the window
+            if actual_image.width() <= canvas.winfo_width() or actual_image.height() <= canvas.winfo_height():
+                canvas.coords(canvas_image_to_move, actual_image.width()/2, actual_image.height()/2)
+
+            # resizing canvas and moving image along its Y axis
             if canvas.winfo_height() < actual_image.height():
-                y= root.winfo_height() - zoom_hor_slider.winfo_height() - 158 - canvas.winfo_height()
-                print("y=", y)
+                # y is the required movement value
+                y = root.winfo_height() - zoom_hor_slider.winfo_height() - 158 - canvas.winfo_height()
+
                 canvas.config(height=root.winfo_height() - zoom_hor_slider.winfo_height() - 158)
+
+                zoom_ver_slider.grid(row=1, column=2, sticky=SW, rowspan=1)
                 zoom_ver_slider.config(length=canvas.winfo_height())
-                print("smaller")
+
                 y_stop = abs(image_coordinates[1]) + abs(image_coordinates[3]) - canvas.winfo_height()
                 if -y_stop <= image_coordinates[1] + y <= 0:
                     canvas.move(canvas_image_to_move, 0, y)
+            else:
+                # removing the slider if image becomes full-size
+                zoom_ver_slider.grid_forget()
+
+            # resizing canvas and moving image along its X axis
             if canvas.winfo_width() < actual_image.width():
+                # x is the required movement value
                 x = root.winfo_width() - zoom_ver_slider.winfo_width() - canvas.winfo_width()
-                canvas.config(width=min((root.winfo_width() - zoom_ver_slider.winfo_width(),actual_image.width())))
+                canvas.config(width=min((root.winfo_width() - zoom_ver_slider.winfo_width(), actual_image.width())))
+
+                zoom_hor_slider.grid(row=2, column=1, sticky=NE)
                 zoom_hor_slider.config(length=canvas.winfo_width())
-                print("smaller")
+
                 x_stop = abs(image_coordinates[0]) + abs(image_coordinates[2]) - canvas.winfo_width()
-                if -x_stop <= image_coordinates[0] + x <= 0 and canvas.coords(canvas_image_to_move):
+
+                if -x_stop <= image_coordinates[0] + x <= 0:
+
                     canvas.move(canvas_image_to_move, x, 0)
-            #canvas.move(canvas_image_to_move, x, y)
 
-
-            print("coordinates", canvas.coords(canvas_image_to_move))
-
-            # x_movement = e.x - moving_shift_X  # calculating horizontal movement value
-            # y_movement = e.y - moving_shift_Y  # calculating vertical movement value
-            # calculating the coordinates of the image boundaries in relation to canvas
-            """
-            y_stop = abs(image_coordinates[1]) + abs(image_coordinates[3]) - canvas.winfo_height()
-            x_stop = abs(image_coordinates[0]) + abs(image_coordinates[2]) - canvas.winfo_width()
-            """
-            # while moving the picture with the mouse, the slider will not move the image
-            # zoom_ver_slider.config(to=-y_stop, command=empty_dunction)
-            # zoom_hor_slider.config(to=-x_stop, command=empty_dunction)
-
-            # We only move the image if it's not getting out of bounds of canvas, moving shift !=0 here is the measure against jugged movement
-            """
-            if -y_stop <= image_coordinates[1] + y <= 0:
-                canvas.move(canvas_image_to_move, 0, y)
-                # zoom_ver_slider.set(zoom_ver_slider.get() + y_movement)
-            if -x_stop <= image_coordinates[0] + x <= 0:
-                canvas.move(canvas_image_to_move, x, 0)
-            """
-                # zoom_hor_slider.set(zoom_hor_slider.get() + x_movement)
-
-                # canvas.config(height=actual_image.height(),
-                #              width=actual_image.width())
-                # canvas.grid_forget()
-                # show_image_resize(current_image)
-                # canvas.grid(row=1, column=1, sticky="se")  # columnspan=4)
-                # print("bigger")
-
-            """
-            if not zoom_on.get():
-                #if actual_image_height!=actual_image.height() or actual_image_width!=actual_image.width() \
-                #        or root.winfo_height()-152<actual_image_height or root.winfo_width()<actual_image_width:
-                show_image(current_image)
             else:
-                canvas.config(height=root.winfo_height() - zoom_hor_slider.winfo_height() - 158,
-                              width=root.winfo_width() - zoom_ver_slider.winfo_width())
-                zoom_ver_slider.config(length=canvas.winfo_height())
-                zoom_hor_slider.config(length=canvas.winfo_width())
+                zoom_hor_slider.grid_forget()
 
-            if actual_image_height != actual_image.height() or actual_image_width != actual_image.width() \
-                    or root.winfo_height() - 152 < actual_image_height or root.winfo_width() < actual_image_width:
-                zoom_on.set(False)
-            else:
-                zoom_on.set(True)
-            """
-            # canvas.config(height=root.winfo_height() - 155, width=root.winfo_width() - zoom_ver_slider.winfo_width())
-
-            """
-            if zoom_hor_slider.winfo_ismapped()==1 or zoom_ver_slider.winfo_ismapped()==1:
-                canvas.config(height=difference_y, width=difference_x - zoom_ver_slider.winfo_width() )
-                #canvas.config(height=root.winfo_height() - 155, width=root.winfo_width() - zoom_ver_slider.winfo_width())
-                #zoom_ver_slider.config(length=canvas.winfo_height())
-                #zoom_hor_slider.config(length=canvas.winfo_width())
-            """
-            """
-            zoom_ver_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[0] + canvas.winfo_height(),
-                                            length=canvas.winfo_height(), orient="vertical", command=moving_pictures)
-            zoom_hor_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[1] + canvas.winfo_width(),
-                                            length=canvas.winfo_width(), orient="horizontal", command=moving_pictures)
-            """
-
-            # reloading the label each iteration to avoid image-tearing
-            #options_frame.grid_forget()
             if not hide_on.get():
+                # only putting the options on screen if the user didn't hide them
                 options_frame.grid(row=3, column=1, sticky=S, columnspan= 2)
-
                 label = Label(options_frame, image=resizing_image, borderwidth=0)
                 label.grid_forget()
                 label.grid(row=0, column=0, columnspan=3, rowspan=3)
@@ -1031,9 +1001,6 @@ def resize_window_with_zoom(event):
             label2 = Label(closing_frame, image=resizing_image2, borderwidth=0)
             label2.grid_forget()
             label2.grid(row=0, column=0, columnspan=2)
-
-
-
         except:
             pass
 
@@ -1043,30 +1010,22 @@ def resize_window_no_zoom(event):
     global options_frame
     global resizing_image
     global root
-    global button_zoom_in
-    global button_zoom_out
-    global button_rotate_left
-    global button_rotate_right
-    global button_next
-    global button_back
     global label
+    global label2
     global canvas
-    global zoom_ver_slider
-    global zoom_hor_slider
     global hide_on
+    global zoom_on
     global actual_image
     global actual_image_height
     global actual_image_width
-    global zoom_on
 
-    print("without zoom")
     #calculating the new window size
     ywin = root.winfo_y()
     difference_y = (event.y_root - ywin)
     xwin = root.winfo_x()
     difference_x = (event.x_root - xwin)
 
-    if difference_x>563 and difference_y>147: #difference_x>563 and difference_y>152:  # 150 is the minimum height for the window
+    if difference_x>563 and difference_y>147:
         try:
             root.geometry(f"{difference_x}x{difference_y}")
             if actual_image_height != actual_image.height() or actual_image_width != actual_image.width() \
@@ -1074,46 +1033,6 @@ def resize_window_no_zoom(event):
 
                 show_image(current_image)
 
-
-
-
-
-            """
-            root.geometry(f"{difference_x}x{difference_y}")
-            if not zoom_on.get():
-                #if actual_image_height!=actual_image.height() or actual_image_width!=actual_image.width() \
-                #        or root.winfo_height()-152<actual_image_height or root.winfo_width()<actual_image_width:
-                show_image(current_image)
-            else:
-                canvas.config(height=root.winfo_height() - zoom_hor_slider.winfo_height() - 158,
-                              width=root.winfo_width() - zoom_ver_slider.winfo_width())
-                zoom_ver_slider.config(length=canvas.winfo_height())
-                zoom_hor_slider.config(length=canvas.winfo_width())
-
-            if actual_image_height != actual_image.height() or actual_image_width != actual_image.width() \
-                    or root.winfo_height() - 152 < actual_image_height or root.winfo_width() < actual_image_width:
-                zoom_on.set(False)
-            else:
-                zoom_on.set(True)
-            """
-                # canvas.config(height=root.winfo_height() - 155, width=root.winfo_width() - zoom_ver_slider.winfo_width())
-
-            """
-            if zoom_hor_slider.winfo_ismapped()==1 or zoom_ver_slider.winfo_ismapped()==1:
-                canvas.config(height=difference_y, width=difference_x - zoom_ver_slider.winfo_width() )
-                #canvas.config(height=root.winfo_height() - 155, width=root.winfo_width() - zoom_ver_slider.winfo_width())
-                #zoom_ver_slider.config(length=canvas.winfo_height())
-                #zoom_hor_slider.config(length=canvas.winfo_width())
-            """
-            """
-            zoom_ver_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[0] + canvas.winfo_height(),
-                                            length=canvas.winfo_height(), orient="vertical", command=moving_pictures)
-            zoom_hor_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[1] + canvas.winfo_width(),
-                                            length=canvas.winfo_width(), orient="horizontal", command=moving_pictures)
-            """
-
-            # reloading the label each iteration to avoid image-tearing
-            #options_frame.grid_forget()
             if not hide_on.get():
                 options_frame.grid(row=3, column=1, sticky=S, columnspan= 2)
 
@@ -1124,9 +1043,6 @@ def resize_window_no_zoom(event):
             label2 = Label(closing_frame, image=resizing_image2, borderwidth=0)
             label2.grid_forget()
             label2.grid(row=0, column=0, columnspan=2)
-
-
-
         except:
             pass
 
@@ -1137,10 +1053,6 @@ resize_widget.bind("<ButtonRelease-1>", resizing_release)
 
 
 resize_widget.grid(row=3, column=1, columnspan=3, ipadx=3, ipady=3, padx=2, pady=2, sticky="se")# columnspan=10
-
-print(canvas.winfo_height(), actual_image_height, actual_image.height())
-
-
 
 
 
