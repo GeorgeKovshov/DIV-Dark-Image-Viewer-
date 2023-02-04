@@ -112,6 +112,9 @@ current_image = 0
 # variable for window size lock
 lock_on = BooleanVar()
 
+# variable to fix an off-centering of newly locked images
+previous_lock_on = BooleanVar()
+
 # variable for whether the controls menu is hidden
 hide_on = BooleanVar()
 
@@ -315,6 +318,7 @@ def show_image(img_number):
     global images
     global canvas
     global lock_on
+    global previous_lock_on
     global rotation
     global current_dir_path
     global actual_image #without storing image here, garbage collector takes the image away
@@ -346,6 +350,8 @@ def show_image(img_number):
     # else fit it and window into the monitor
     if not lock_on.get():
         size_of_image_new = max_size_reshape(image_for_canvas_new.height, image_for_canvas_new.width)
+        #x = size_of_image_new[1]
+        #y = size_of_image_new[0]
         canvas.config(height=size_of_image_new[0], width=size_of_image_new[1])
         #if size_of_image_new[1]>600:
         root.geometry("")
@@ -353,14 +359,23 @@ def show_image(img_number):
         #    print("we are here")
         #    root.geometry(f"600x{size_of_image_new[0] + options_frame.winfo_height() + 58}") #size_of_image_new[0] + 152
     else:
+        y = root.winfo_height()
+        x = root.winfo_width()
         if fullscreen_on:
-            canvas.config(height=root.winfo_height(), width=root.winfo_width())
+            #canvas.config(height=root.winfo_height(), width=root.winfo_width())
+            canvas.config(height=root.winfo_screenheight(), width=root.winfo_screenwidth())
+            y = root.winfo_screenheight()
+            x = root.winfo_screenwidth()
         elif hide_on.get():
+            y -= 69
             canvas.config(height=root.winfo_height() - 69, width=root.winfo_width())  # height=root.winfo_height() - 152
         else:
+            y -= options_frame.winfo_height() + 58
             canvas.config(height=root.winfo_height() - options_frame.winfo_height() - 58, width=root.winfo_width()) # height=root.winfo_height() - 152
+        print("image for canvas", image_for_canvas_new.height, image_for_canvas_new.width,
+                                                 "canvas:", canvas.winfo_height(), canvas.winfo_width())
         size_of_image_new = lock_on_size_reshape(image_for_canvas_new.height, image_for_canvas_new.width,
-                                                 canvas.winfo_height(), canvas.winfo_width())
+                                                 y, x)#canvas.winfo_height(), canvas.winfo_width())
     image1_new = ImageTk.PhotoImage(image_for_canvas_new.resize((size_of_image_new[1], size_of_image_new[0])))
     #print("new width:", image1_new.width())
     actual_image = image1_new
@@ -368,10 +383,16 @@ def show_image(img_number):
         canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, image=image1_new)
     else:
         #canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, image=image1_new)
-        canvas.create_image(canvas.winfo_width()/2, canvas.winfo_height()/2, anchor=CENTER, image=image1_new)
+        canvas.create_image(x/2, y/2, anchor=CENTER, image=image1_new)
+    canvas.grid(row=1, column=1, sticky="se")  # columnspan=4)
+    """
+    old_lock = previous_lock_on
+    if lock_on.get() and not old_lock.get():
+        previous_lock_on.set(True)
+        show_image(current_image)
+    """
 
 
-    canvas.grid(row=1, column=1, sticky="se") #columnspan=4)
 
 def show_image_resize(img_number):
     """function to show an image from the list with img_number index"""
@@ -561,6 +582,7 @@ def zoom(is_zoom_in):
 
     zoom_ver_slider.grid_forget()
     zoom_hor_slider.grid_forget()
+    zoom_on.set(False)
     size_of_image_new = (image_for_canvas_new.height, image_for_canvas_new.width)
     size_of_canvas_new = size_of_image_new
 
@@ -703,19 +725,21 @@ def fullscreen():
     global settings_frame
     global resize_widget
     global lock_on
+    global monitor_width
+    global monitor_height
     #global actual_image_width
     #global actual_image_height
 
     if fullscreen_on:
-
         fullscreen_on = False
         root.unbind("<Escape>")
         settings_frame.grid(row=0, column=0, columnspan=3, sticky="nw")
         closing_frame.grid(row=0, column=1, columnspan=3, sticky="ne")
         resize_widget.grid(row=3, column=1, columnspan=3, ipadx=3, ipady=3, padx=2, pady=2, sticky="se")
         lock_on.set(False)
+        root.geometry(f"{actual_image_width+200}x{actual_image_height+200}")
         show_image(current_image)
-        #root.geometry(f"{actual_image_width+200}x{actual_image_height+200}")
+
     else:
         root.geometry(f"{root.winfo_screenwidth()}x{root.winfo_screenheight()}+0+0")
         fullscreen_on = True
@@ -724,6 +748,7 @@ def fullscreen():
         settings_frame.grid_forget()
         resize_widget.grid_forget()
         lock_on.set(True)
+        show_image(current_image)
     if fullscreen_on and not hide_on.get():
         hide_menu()
     elif not fullscreen_on:
@@ -921,6 +946,14 @@ def resizing_release(event):
     button_next.grid(row=2, column=2, padx=5)
     button_back = ttk.Button(options_frame, text="<- Back", command=lambda: next_image(previous_ind))
     button_back.grid(row=2, column=0, padx=5)
+
+    """
+    if hide_on.get():
+        canvas.config(height=root.winfo_height() - 69, width=root.winfo_width())  # height=root.winfo_height() - 152
+    else:
+        canvas.config(height=root.winfo_height() - options_frame.winfo_height() - 58,
+                      width=root.winfo_width())  # height=root.winfo_height() - 152
+    """
 
 
 
