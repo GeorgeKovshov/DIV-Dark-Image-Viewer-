@@ -327,12 +327,21 @@ def show_image(img_number):
 
 bigger_than_window = False
 stop_e = False
+gif_index = 0
 
 def stop():
     """stops the gif"""
     global stop_e
+    global current_image
     stop_e = not stop_e
-    root.update()
+    show_gif(current_image)
+
+def stop_full():
+    """stops the gif"""
+    global stop_e
+    stop_e = True
+    show_gif(current_image)
+    #root.update()
 
 
 def show_gif(img_number):
@@ -345,6 +354,10 @@ def show_gif(img_number):
     global actual_image_height
     global actual_image
     global button_stop
+    global stop_e
+    global zoom_ver_slider
+    global zoom_hor_slider
+    global gif_index
 
     image = Image.open(current_dir_path + "/" + images[img_number])
 
@@ -355,42 +368,119 @@ def show_gif(img_number):
     actual_image_height = round(image.height * zoom_value)
     actual_image_width = round(image.width * zoom_value)
 
+    # rotating image if its rotated
+    if rotation == 1:
+        actual_image_height = image.width
+        actual_image_width = image.height
+        image = image.rotate(-90, expand=True)
+    elif rotation == -1:
+        actual_image_height = image.width
+        actual_image_width = image.height
+        image = image.rotate(90, expand=True)
+    elif rotation == 2:
+        image = image.rotate(180)
+
+    # if the window is locked, fit the image in window
+    # else fit it and window into the monitor
+    if not lock_on.get():
+        # size_of_image_new = max_size_reshape(actual_image_height, actual_image_width)  # image_for_canvas_new.height, image_for_canvas_new.width)
+        size_of_image_new = max_size_reshape(round(actual_image_height * zoom_value), round(
+            actual_image_width * zoom_value))  # image_for_canvas_new.height, image_for_canvas_new.width)
+        # x = size_of_image_new[1]
+        # y = size_of_image_new[0]
+        canvas.config(height=size_of_image_new[0], width=size_of_image_new[1])
+        if not fullscreen_on:
+            if options_frame.winfo_height() > 1 and not hide_on.get():  # loading the first image
+                root.geometry(f"{size_of_image_new[1]}x{size_of_image_new[0] + options_frame.winfo_height() + 58}")
+            elif hide_on.get():  # loading images when hide on
+                root.geometry(f"{size_of_image_new[1]}x{size_of_image_new[0] + 58}")
+            else:  # loading images when not hide on
+                root.geometry("")
+    else:
+        y = root.winfo_height()
+        x = root.winfo_width()
+        if fullscreen_on:
+            y = root.winfo_screenheight()
+            x = root.winfo_screenwidth()
+            canvas.config(height=y, width=x)
+        elif hide_on.get():
+            y -= 69
+            canvas.config(height=root.winfo_height() - 69, width=root.winfo_width())  # height=root.winfo_height() - 152
+        else:
+            y -= options_frame.winfo_height() + 58
+            canvas.config(height=root.winfo_height() - options_frame.winfo_height() - 58, width=root.winfo_width())
+
+        size_of_image_new = lock_on_size_reshape(round(actual_image_height * zoom_value),
+                                                 round(actual_image_width * zoom_value),
+                                                 y, x)
+
+
     # initialize stop button
     button_stop.grid(row=1, column=4)
-
-    # initializing the canvas
-    canvas.configure(height=actual_image_height, width=actual_image_width)
-
-    image_for_label = ImageTk.PhotoImage(image.resize((actual_image_width, actual_image_height)))
     # storing the amount of frames in gif
     frame_count = image.n_frames
+    """
+    if gif_index == 0:
+        # initializing the canvas
+        #canvas.configure(height=actual_image_height, width=actual_image_width)
+        image_for_label = ImageTk.PhotoImage(image.resize((round(size_of_image_new[1]*zoom_value),
+                                                            (round(size_of_image_new[0]*zoom_value)))))
 
-    # images = [PhotoImage(file='blow.gif', format = 'gif -index %i' %i) for i in range(image.n_frames)]
-
-    canvas.create_image(actual_image_width / 2, actual_image_height / 2, anchor=CENTER, image=image_for_label)
-    canvas.grid(row=1, column=1, sticky="se")
-
-    # initializing the index counter for frames
-    ind = 0
-
-    while ind <= frame_count and not stop_e:
-        time.sleep(0.06 / zoom_value)  # the pause between frames
-        # print(zoom_value)
-        canvas.grid_forget()
-        # canvas.configure(height=gif_height, width=gif_width)
-        image_for_label = ImageTk.PhotoImage(image.resize((actual_image_width, actual_image_height)))  # loading the next image
-        actual_image = image_for_label
         canvas.create_image(actual_image_width / 2, actual_image_height / 2, anchor=CENTER, image=image_for_label)
         canvas.grid(row=1, column=1, sticky="se")
 
-        # making the gif loop:
-        if ind == frame_count:
-            image.seek(0)
-            ind = 0
-        else:
-            image.seek(ind)
-            ind += 1
+    """
 
+    while gif_index <= frame_count and not stop_e:
+        time.sleep(0.06 / zoom_value)  # the pause between frames
+        # print(zoom_value)
+        canvas.grid_forget()
+        # making the gif loop:
+        if gif_index == frame_count:
+            image.seek(0)
+            gif_index = 0
+        else:
+            image.seek(gif_index)
+        # canvas.configure(height=gif_height, width=gif_width)
+        if rotation == 1:
+            actual_image_height = image.width
+            actual_image_width = image.height
+            image = image.rotate(-90, expand=True)
+        elif rotation == -1:
+            actual_image_height = image.width
+            actual_image_width = image.height
+            image = image.rotate(90, expand=True)
+        elif rotation == 2:
+            image = image.rotate(180)
+        size_of_image_new = max_size_reshape(round(actual_image_height * zoom_value),
+                                             round(actual_image_width * zoom_value))
+        image_for_label = ImageTk.PhotoImage(image.resize((round(size_of_image_new[1]*zoom_value), round(size_of_image_new[0]*zoom_value))))  # loading the next image
+        """
+        if rotation == 1:
+            actual_image_height = image.width
+            actual_image_width = image.height
+            image_for_label = image_for_label.rotate(-90, expand=True)
+        elif rotation == -1:
+            actual_image_height = image.width
+            actual_image_width = image.height
+            image_for_label = image_for_label.rotate(90, expand=True)
+        elif rotation == 2:
+            image_for_label = image_for_label.rotate(180)
+            """
+
+        actual_image = image_for_label
+        if zoom_ver_slider.winfo_ismapped():
+            slide_y = zoom_ver_slider.get()
+        else:
+            slide_y = 0
+        if zoom_hor_slider.winfo_ismapped():
+            slide_x = zoom_hor_slider.get()
+        else:
+            slide_x = 0
+        canvas.create_image(round(size_of_image_new[1]*zoom_value) / 2 + slide_x, round(size_of_image_new[0]*zoom_value) / 2 + slide_y, anchor=CENTER, image=image_for_label)
+        canvas.grid(row=1, column=1, sticky="se")
+
+        gif_index += 1
         root.update()
 
 # Initializing canvas for images to be put into
@@ -440,7 +530,12 @@ def next_image(img_number):
     global zoom_value
     global stop_e
     global button_stop
+    global gif_index
     # Calculating the next image number in list
+
+
+    #Image.close(current_dir_path + "/" + images[img_number])
+
     current_image += (img_number - current_image)
 
     # Resetting rotation
@@ -454,16 +549,10 @@ def next_image(img_number):
     zoom_value = 1
 
     # Resetting stop
-    stop_e = False
+    stop_e = True
     button_stop.grid_forget()
+    gif_index = 0
 
-
-
-    # Replacing the old image with a new one
-    if images[current_image].endswith(".gif"):
-        show_gif(current_image)
-    else:
-        show_image(current_image)
     # Making the image viewer cycle through images
     next_ind, previous_ind = cycling_calculation()
 
@@ -474,6 +563,20 @@ def next_image(img_number):
     button_back.grid(row=2, column=0)
     root.bind("<Right>", lambda event: next_image(next_ind))
     root.bind("<Left>", lambda event: next_image(previous_ind))
+
+    # Replacing the old image with a new one
+    if images[current_image].endswith(".gif"):
+        stop_e = False
+        show_gif(current_image)
+    elif images[current_image].endswith(".webp"):
+        try:
+            stop_e = False
+            show_gif(current_image)
+        except:
+            show_image(current_image)
+    else:
+        show_image(current_image)
+
 
 
 
@@ -548,6 +651,8 @@ def zoom(is_zoom_in):
             zoom_hor_slider = ttk.Scale(root, from_=0, to=-size_of_image_new[1] + size_of_canvas_new[1],
                                     length=size_of_canvas_new[1], orient="horizontal", command=moving_pictures) #showvalue=0
             zoom_hor_slider.grid(row=2, column=1, sticky=NE)
+            zoom_ver_slider.bind("<Button-1>", stop_full)
+            zoom_hor_slider.bind("<Button-1>", stop_full)
         canvas.config(height=size_of_canvas_new[0], width=size_of_canvas_new[1])
     else:
         if canvas.winfo_width() < size_of_image_new[1] or canvas.winfo_height()< size_of_image_new[0]:
@@ -1004,6 +1109,8 @@ closing_frame.bind('<Button-1>',lambda event, a=root, b=closing_frame: custom_ti
 root.bind("<FocusIn>", lambda event, a=root: custom_titlebar.deminimize(event, a))  # to view the window by clicking on the window icon on the taskbar
 root.after(10, lambda: custom_titlebar.set_appwindow(root))  # to see the icon on the task bar
 
+#button_next.configure(command=)
+
 
 print(monitor_height, monitor_width)
 
@@ -1017,12 +1124,14 @@ label = Label(options_frame, image=resizing_image, borderwidth=0)
 label2 = Label(closing_frame, image=resizing_image2, borderwidth=0)
 
 
-
 resize_widget.bind("<Button-1>", resizing_press)
 resize_widget.bind("<ButtonRelease-1>", resizing_release)
 
-
 resize_widget.grid(row=3, column=1, columnspan=3, ipadx=3, ipady=3, padx=2, pady=2, sticky="se")
+
+
+zoom_ver_slider.bind("<Button-1>", stop_full)
+zoom_hor_slider.bind("<Button-1>", stop_full)
 
 
 
