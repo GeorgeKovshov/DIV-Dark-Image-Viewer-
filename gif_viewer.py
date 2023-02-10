@@ -77,8 +77,8 @@ button_zoom.grid(row=0, column=2)
 # opening the gif
 
 #image = Image.open("2016_Grand_Rapids_tornado_outbreak_radar_loop.gif")
-#image = Image.open("KOXOBiN.gif")
-image = Image.open("giphy (1).gif")
+image = Image.open("KOXOBiN.gif")
+#image = Image.open("giphy (1).gif")
 # storing the image height and width, so there'd be no function call for image.height/width
 gif_height = image.height
 gif_width = image.width
