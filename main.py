@@ -398,12 +398,30 @@ def zoom_gif3(is_zoom_in):
     if not lock_on.get():
         # if zoomed-in image gets bigger than monitor, function stops expanding window; the image within canvas always expands
         if size_of_canvas_new[0] > monitor_height - 100 or size_of_canvas_new[1] > monitor_width - 100:
-            size_of_canvas_new = canvas_reshape(size_of_canvas_new[0], size_of_canvas_new[1],
-                                                     monitor_height - 180, monitor_width - 180)
+            #size_of_canvas_new = canvas_reshape(size_of_canvas_new[0], size_of_canvas_new[1],
+            #                                         monitor_height - 180, monitor_width - 180)
+            bigger_than_window = True
+            moving_shift_X = 0
+            moving_shift_Y = 0
+            zoom_on.set(True)
+            # we only put the sliders and activate the mouse movement function when image is zoomed-in
+            canvas.bind("<B1-Motion>", moving_mouse)
+            canvas.bind("<ButtonRelease-1>", mouse_release)
+
+            zoom_ver_slider = ttk.Scale(root, from_=0, to=-gif_height + canvas.winfo_height(),
+                                        length=canvas.winfo_height(), orient="vertical")
+            zoom_hor_slider = ttk.Scale(root, from_=0, to=-gif_width + canvas.winfo_width(),
+                                        length=canvas.winfo_width(), orient="horizontal")
+
+            zoom_ver_slider.grid(row=1, column=2, sticky=SW, rowspan=1)
+
+            zoom_hor_slider.grid(row=2, column=1, sticky=NE)
+            """
             moving_shift_X = 0
             moving_shift_Y = 0
             zoom_on.set(True)
             bigger_than_window = True
+
             # we only put the sliders and activate the mouse movement function when image is zoomed-in
             canvas.bind("<B1-Motion>", moving_mouse)
             canvas.bind("<ButtonRelease-1>", mouse_release)
@@ -413,8 +431,9 @@ def zoom_gif3(is_zoom_in):
             zoom_hor_slider = ttk.Scale(root, from_=0, to=-gif_width + size_of_canvas_new[1],
                                     length=size_of_canvas_new[1], orient="horizontal") #showvalue=0
             zoom_hor_slider.grid(row=2, column=1, sticky=NE)
-
-        canvas.config(height=size_of_canvas_new[0], width=size_of_canvas_new[1])
+            """
+        else:
+            canvas.config(height=size_of_canvas_new[0], width=size_of_canvas_new[1])
     else:
         if canvas.winfo_width() < gif_width or canvas.winfo_height()< gif_height:
             moving_shift_X = 0
