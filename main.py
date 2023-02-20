@@ -3,6 +3,8 @@ import tkinter
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
+
+import PIL.GdImageFile
 from ttkthemes import ThemedTk
 from PIL import ImageTk, Image
 import time
@@ -52,6 +54,9 @@ current_dir_path = os.getcwd()
 
 # global current_image - use 'global' only in functions, not here
 current_image = 0
+
+# global variable for gif image
+
 
 # variable for window size lock
 lock_on = BooleanVar()
@@ -343,6 +348,7 @@ def show_image(img_number):
 
     image1_new = ImageTk.PhotoImage(image_for_canvas_new.resize((size_of_image_new[1], size_of_image_new[0])))
     actual_image = image1_new
+    image_for_canvas_new.close()
 
     if not lock_on.get():
         canvas.create_image(size_of_image_new[1] / 2, size_of_image_new[0] / 2, image=actual_image)
@@ -367,7 +373,7 @@ def stop_full():
     global old_stop_e
     old_stop_e = stop_e
     stop_e = True
-    show_gif(current_image)
+    #show_gif(current_image)
 
 
 def resume_stop_full():
@@ -497,9 +503,16 @@ def show_gif(img_number):
     global gif_height
     global canvas_image_to_move
     global speed
+    global image
 
-    image = Image.open(current_dir_path + "/" + images[img_number])
+    try:
+        image.close()
+    except:
+        pass
     canvas.grid_forget()
+    image = Image.open(current_dir_path + "/" + images[img_number])
+
+
 
     actual_image_height = image.height
     actual_image_width = image.width
@@ -635,7 +648,6 @@ def show_gif(img_number):
         else:
             slide_x = 0
 
-
         if not lock_on.get():
             canvas_image_to_move = canvas.create_image(size_of_image[1] / 2 + slide_x, size_of_image[0] / 2 + slide_y, anchor=CENTER, image=image_for_label)
         else:
@@ -688,9 +700,11 @@ def next_image(img_number):
     global speed
     # Calculating the next image number in list
 
+    # Image.close(current_dir_path + "/" + images[img_number])
 
-    #Image.close(current_dir_path + "/" + images[img_number])
 
+    # Resetting stop
+    stop_e = True
     current_image += (img_number - current_image)
 
     # Resetting rotation
@@ -706,8 +720,7 @@ def next_image(img_number):
 
     bigger_than_window = False
 
-    # Resetting stop
-    stop_e = True
+
     if button_stop.winfo_ismapped():
         button_stop.grid_forget()
         button_speed_down.grid_forget()
