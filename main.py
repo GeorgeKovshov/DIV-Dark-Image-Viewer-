@@ -4,7 +4,7 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
 
-import PIL.GdImageFile
+#import PIL.GdImageFile
 from ttkthemes import ThemedTk
 from PIL import ImageTk, Image
 import time
@@ -1334,41 +1334,49 @@ if images:
 
 """______________Defining Buttons for Options Menu_____________"""
 
-# If one or none images in folder, the buttons are Disabled
+# If one or none images in folder the next/back buttons are Disabled
 amount_of_images = len(images)
 if amount_of_images > 1:
     button_next = ttk.Button(options_frame, text="Next ->", command=lambda: next_image(1))
-    button_next.grid(row=2, column=2, padx=5)
     button_back = ttk.Button(options_frame, text="<- Back", command=lambda: next_image(len(images) - 1))
-    button_back.grid(row=2, column=0, padx=5)
     root.bind("<Right>", lambda event: next_image(1))
     root.bind("<Left>", lambda event: next_image(len(images) - 1))
 else:
     button_next = ttk.Button(options_frame, text="Next ->", command=DISABLED)
-    button_next.grid(row=2, column=2, padx=5)
     button_back = ttk.Button(options_frame, text="<- Back", command=DISABLED)
-    button_back.grid(row=2, column=0, padx=5)
 
-button_zoom_in = ttk.Button(options_frame, text="Zoom In", command=lambda: zoom(True))
-button_zoom_in.grid(row=1, column=1, padx=5)
-root.bind("<Up>", lambda event: zoom(True))
+button_next.grid(row=2, column=2, padx=5)
+button_back.grid(row=2, column=0, padx=5)
 
-button_zoom_out = ttk.Button(options_frame, text="Zoom Out", command=lambda: zoom(False))
-button_zoom_out.grid(row=2, column=1, padx=5)
-root.bind("<Down>", lambda event: zoom(False))
+# if no images in folder the options commands are disabled
+if amount_of_images > 0:
+    button_zoom_in = ttk.Button(options_frame, text="Zoom In", command=lambda: zoom(True))
+    root.bind("<Up>", lambda event: zoom(True))
 
-button_rotate_right = ttk.Button(options_frame, text="Rotate right", command=lambda: rotate_image(True))
-button_rotate_right.grid(row=1, column=2)
+    button_zoom_out = ttk.Button(options_frame, text="Zoom Out", command=lambda: zoom(False))
+    root.bind("<Down>", lambda event: zoom(False))
 
-button_rotate_left = ttk.Button(options_frame, text="Rotate left", command=lambda: rotate_image(False))
-button_rotate_left.grid(row=1, column=0, padx=5, pady=5)
+    button_rotate_right = ttk.Button(options_frame, text="Rotate right", command=lambda: rotate_image(True))
+    button_rotate_left = ttk.Button(options_frame, text="Rotate left", command=lambda: rotate_image(False))
+else:
+    button_zoom_in = ttk.Button(options_frame, text="Zoom In", command=DISABLED)
+    button_zoom_out = ttk.Button(options_frame, text="Zoom Out", command=DISABLED)
+
+    button_rotate_right = ttk.Button(options_frame, text="Rotate right", command=DISABLED)
+    button_rotate_left = ttk.Button(options_frame, text="Rotate left", command=DISABLED)
+
 
 zoom_hor_slider = ttk.Scale(root, from_=0, to=10, length=1, command=moving_pictures)
 zoom_ver_slider = ttk.Scale(root, from_=0, to=10, length=1, command=moving_pictures)
 
+button_stop = ttk.Button(options_frame, text="Stop", command=stop)
 button_speed_up = ttk.Button(options_frame, text="Speed+", command=lambda: speed_change(True))
 button_speed_down = ttk.Button(options_frame, text="Speed-", command=lambda: speed_change(False))
-button_stop = ttk.Button(options_frame, text="Stop", command=stop)
+
+button_zoom_in.grid(row=1, column=1, padx=5)
+button_zoom_out.grid(row=2, column=1, padx=5)
+button_rotate_right.grid(row=1, column=2)
+button_rotate_left.grid(row=1, column=0, padx=5, pady=5)
 
 
 """________________Defining buttons for Settings menu___________________"""
