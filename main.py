@@ -1,5 +1,5 @@
 import sys
-import tkinter
+#import tkinter
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
@@ -906,6 +906,11 @@ def open_image():
     global current_image
     global current_dir_path
     global zoom_on
+    global button_zoom_out
+    global button_zoom_in
+    global button_rotate_right
+    global button_rotate_left
+    global expand_button
 
     # handling the error of not choosing a file
     try:
@@ -937,20 +942,35 @@ def open_image():
                 if f == filename_end:  # if current is the chosen image - we remember it as the one to show first
                     current_image = index_filename
                 index_filename += 1
+        amount_of_images = len(images)
+        if amount_of_images > 0:
+            button_zoom_in = ttk.Button(options_frame, text="Zoom In", command=lambda: zoom(True))
+            button_zoom_in.grid(row=1, column=1)
+            root.bind("<Up>", lambda event: zoom(True))
 
-        #loading_files(filename)
+            button_zoom_out = ttk.Button(options_frame, text="Zoom Out", command=lambda: zoom(False))
+            button_zoom_out.grid(row=2, column=1)
+            root.bind("<Down>", lambda event: zoom(False))
+
+            button_rotate_right = ttk.Button(options_frame, text="Rotate right", command=lambda: rotate_image(True))
+            button_rotate_right.grid(row=1, column=2)
+            button_rotate_left = ttk.Button(options_frame, text="Rotate left", command=lambda: rotate_image(False))
+            button_rotate_left.grid(row=2, column=0)
+
+            expand_button = ttk.Button(settings_frame, text=' Fullscreen ', width=9, command=fullscreen)
+            expand_button.grid(row=0, column=3, ipady=3, padx=5)
+
+            # Remapping the buttons to new images
+            next_ind, previous_ind = cycling_calculation()
+            button_next = ttk.Button(options_frame, text="Next ->", command=lambda: next_image(next_ind))
+            button_next.grid(row=2, column=2)
+            button_back = ttk.Button(options_frame, text="<- Back", command=lambda: next_image(previous_ind))
+            button_back.grid(row=2, column=0)
+            root.bind("<Right>", lambda event: next_image(next_ind))
+            root.bind("<Left>", lambda event: next_image(previous_ind))
+
         # putting the image on screen
         show_image(current_image)
-
-        # Remapping the buttons to new images
-        next_ind, previous_ind = cycling_calculation()
-        button_next = ttk.Button(options_frame, text="Next ->", command=lambda: next_image(next_ind))
-        button_next.grid(row=2, column=2)
-        button_back = ttk.Button(options_frame, text="<- Back", command=lambda: next_image(previous_ind))
-        button_back.grid(row=2, column=0)
-        root.bind("<Right>", lambda event: next_image(next_ind))
-        root.bind("<Left>", lambda event: next_image(previous_ind))
-
         zoom_on.set(False)
 
 
@@ -1316,9 +1336,9 @@ for f in os.listdir('.'):
 
 
 # Initializing canvas for images to be put into
-canvas = tkinter.Canvas(root, height=1, width=1)
-#canvas.configure(background="#121212", highlightbackground="#D9DDDC", highlightthickness=0)
-canvas.configure(background="#222222", highlightbackground="#D9DDDC", highlightthickness=0)
+canvas = Canvas(root, height=1, width=1)
+canvas.configure(background="#121212", highlightbackground="#D9DDDC", highlightthickness=0)
+#canvas.configure(background="#222222", highlightbackground="#D9DDDC", highlightthickness=0)
 canvas_image_to_move = canvas.create_image(1, 1)
 
 # Loading the first image
@@ -1384,7 +1404,10 @@ button_rotate_left.grid(row=1, column=0, padx=5, pady=5)
 button_open = ttk.Button(settings_frame, text=" Open", width=5, command=open_image)
 button_open.grid(row=0, column=0, ipady=3, padx=5)
 
-expand_button = ttk.Button(settings_frame, text=' Fullscreen ', width=9, command=fullscreen)
+if amount_of_images > 0:
+    expand_button = ttk.Button(settings_frame, text=' Fullscreen ', width=9, command=fullscreen)
+else:
+    expand_button = ttk.Button(settings_frame, text=' Fullscreen ', width=9, command=DISABLED)
 expand_button.grid(row=0, column=3, ipady=3, padx=5)
 
 hide_settings_button = ttk.Button(settings_frame, text=' Std. Menu ', width=9, command=hide_menu)
@@ -1398,8 +1421,8 @@ checkbox_Lock.grid(row=0, column=1, ipadx=2, ipady=3)
 checkbox_Lock.bind('<Enter>', lambda event, a = 'check': viewer_style.change_style(event, a, style))
 checkbox_Lock.bind('<Leave>', lambda event, a = 'check': viewer_style.change_style_back(event, a, style))
 
-img_unticked_box = ImageTk.PhotoImage(Image.open("uncheck2.png"))
-img_ticked_box = ImageTk.PhotoImage(Image.open("check2.png"))
+img_unticked_box = ImageTk.PhotoImage(Image.open("images/uncheck2.png"))
+img_ticked_box = ImageTk.PhotoImage(Image.open("images/check2.png"))
 viewer_style.change_checkbutton(style, img_ticked_box, img_unticked_box)
 
 settings_frame.bind('<Button-1>',lambda event, a=root, b=settings_frame: custom_titlebar.get_pos(event, a, b))  # so you can drag the window from the title bar
@@ -1420,10 +1443,10 @@ closing_frame.bind('<Button-1>',lambda event, a=root, b=closing_frame: custom_ti
 resize_widget = ttk.Frame(root, cursor='sizing')
 
 # loading the images of menus instead of them to improve perfomance during resizing the window
-resizing_image = ImageTk.PhotoImage(Image.open("menu.png"))
-resizing_image2 = ImageTk.PhotoImage(Image.open("close_menu.png"))
-resizing_image_gif = ImageTk.PhotoImage(Image.open("gif_menu.png"))
-resizing_image1 = ImageTk.PhotoImage(Image.open("menu.png"))
+resizing_image = ImageTk.PhotoImage(Image.open("images/menu.png"))
+resizing_image2 = ImageTk.PhotoImage(Image.open("images/close_menu.png"))
+resizing_image_gif = ImageTk.PhotoImage(Image.open("images/gif_menu.png"))
+resizing_image1 = ImageTk.PhotoImage(Image.open("images/menu.png"))
 
 label = Label(options_frame, image=resizing_image, borderwidth=0)
 label2 = Label(closing_frame, image=resizing_image2, borderwidth=0)
